@@ -1,0 +1,23 @@
+{
+  "name": "durable-x-state",
+  "version": "1.0.0",
+  "description": "This is a durable wrapper for xstate",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/app.js",
+    "dev": "ts-node ./src/app.ts"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "xstate": "^4.38.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  }
+}
