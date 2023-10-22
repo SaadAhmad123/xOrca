@@ -59,16 +59,8 @@ export default class S3StorageManager extends StorageManager {
      * @param path - The S3 key/path from where data should be deleted.
      */
     async delete(path: string): Promise<void> {
-        try {
-            await this.s3.deleteObject({ Bucket: this.bucketName, Key: path }).promise();
-            console.log(`File ${path} deleted successfully from bucket ${this.bucketName}.`);
-        } catch (error) {
-            if ((error as any).code === 'NoSuchKey') {
-                console.log(`File ${path} not found in bucket ${this.bucketName}.`);
-            } else {
-                throw error;
-            }
-        }
+        await this.s3.deleteObject({ Bucket: this.bucketName, Key: path }).promise();
+        console.log(`File ${path} deleted successfully from bucket ${this.bucketName}.`);
     }
 
     /**
