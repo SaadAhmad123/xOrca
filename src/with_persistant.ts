@@ -1,16 +1,46 @@
 import { Actor, AnyActorLogic, Snapshot } from 'xstate';
 import StorageManager from './storage_manager';
 
+/**
+ * Input interface for withPersistance function
+ */
 type WithPersistanceInput<TLogic extends AnyActorLogic> = {
+  /** 
+   * Unique ID for the actor
+   */
   id: string;
-  persistanceLayer: StorageManager;
-  actorCreator: (id: string, snapshot?: Snapshot<unknown>) => Actor<TLogic>;
+  /** 
+   * Persistance layer for reading/writing actor state
+   */
+  persistanceLayer: StorageManager;  
+  /**
+   * Function that creates the actor
+   * @param id - Actor ID
+   * @param snapshot - Optional persisted actor snapshot  
+   */
+  actorCreator: (id: string, snapshot?: Snapshot<unknown>) => Actor<TLogic>;  
 };
 
 /**
- * Enhances an actor with persistence capabilities.
- * @param {WithPersistanceInput - The input parameters for the function.
- * @returns An object containing the enhanced actor and methods for persistence and deletion.
+ * Creates an actor with persistence enabled
+ * 
+ * This wraps an actor creator function to add the ability 
+ * to persist and restore actor state.
+ * 
+ * It initializes the actor by checking for any previously persisted state.
+ * If a snapshot is found, it is used to recreate the actor, 
+ * otherwise an empty initial actor is created.
+ *
+ * Persisting works by using the underlying StorageManager interface
+ * to save and load JSON serialized actor snapshots.
+ * 
+ * The returned object contains the initialized actor instance,
+ * along with persist() and delete() methods to manage persistence.
+ *
+ * @returns Object with keys:
+ * - actor: The initialized actor instance  
+ * - persist: Method to persist current actor state
+ * - delete: Method to delete persisted actor state
  */
 export default async function withPersistance<TLogic extends AnyActorLogic>({
   id,
