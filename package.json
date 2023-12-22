@@ -12,7 +12,7 @@
     "format": "npx prettier --write ."
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.10.0"
   },
   "dependencies": {
     "aws-sdk": "^2.1478.0",
