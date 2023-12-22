@@ -1,6 +1,6 @@
 {
   "name": "durable-x-state",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "This is a durable wrapper for xstate",
   "main": "dist/index.js",
   "license": "MIT",
