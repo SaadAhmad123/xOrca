@@ -15,6 +15,7 @@
   ],
   "exclude": [
     "node_modules", // your existing exclude pattern
-    "**/*.spec.ts" // this line will exclude all .spec.ts files
+    "**/*.spec.ts", // this line will exclude all .spec.ts files
+    "**/*.spec.data.ts" // this line will exclude all .spec.data.ts files
   ]
 }

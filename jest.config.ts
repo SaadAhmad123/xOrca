@@ -9,5 +9,5 @@ export default {
   coverageDirectory: 'coverage',
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testMatch: ['**/*.spec.ts'], // This line tells Jest to only consider files with .spec.ts
+  testMatch: ['**/*.spec.ts'],
 };

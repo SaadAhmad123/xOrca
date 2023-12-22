@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1478.0",
-    "xstate": "^4.38.2"
+    "xstate": "^5.3.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.6.2",
