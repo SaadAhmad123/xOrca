@@ -4,8 +4,8 @@ import { acquireLock } from './utils';
 
 /**
  * Actor with persistence and locking capabilities
- * 
- * Wraps an underlying actor and handles saving/restoring state 
+ *
+ * Wraps an underlying actor and handles saving/restoring state
  * using a lock-enabled StorageManager.
  *
  * Allows specifying a locking mode:
@@ -13,10 +13,10 @@ import { acquireLock } from './utils';
  * - "read-write" - lock during reads and writes
  *
  * Usage:
- * 
- * 1. Construct with params  
- * 2. Call init() to initialize actor 
- * 3. Access actor instance from getter  
+ *
+ * 1. Construct with params
+ * 2. Call init() to initialize actor
+ * 3. Access actor instance from getter
  * 4. Call save() periodically to persist state
  * 5. Call close() to cleanup resources
  */
@@ -25,7 +25,7 @@ export default class PersistedActor<TLogic extends AnyActorLogic> {
     persistancePath: string;
   };
   private _actor: undefined | Actor<TLogic>;
-  private initiated: Boolean = false
+  private initiated: Boolean = false;
   /**
    * Create new persisted actor instance
    *
@@ -59,16 +59,16 @@ export default class PersistedActor<TLogic extends AnyActorLogic> {
 
   /**
    * Initializes actor state from storage
-   * 
+   *
    * 1. Acquires lock if locking=read-write
-   * 2. Loads snapshot from storage 
+   * 2. Loads snapshot from storage
    * 3. Initializes actor via creator fn
    *
    * @throws {Error} If already initiated
    */
   async init() {
     if (this.initiated) {
-      throw new Error("Actor already initiated, close it to re-initiate")
+      throw new Error('Actor already initiated, close it to re-initiate');
     }
     const { locking, persistancePath, storageManager, id, actorCreator } =
       this.params;
@@ -80,7 +80,7 @@ export default class PersistedActor<TLogic extends AnyActorLogic> {
       ? JSON.parse(snapshotJson)
       : undefined;
     this._actor = actorCreator(id, snapshot);
-    this.initiated = true
+    this.initiated = true;
   }
 
   /**
@@ -111,36 +111,36 @@ export default class PersistedActor<TLogic extends AnyActorLogic> {
    * Releases lock if locking=read-write
    */
   async close() {
-    if (!this.initiated) return 
+    if (!this.initiated) return;
     const { persistancePath, storageManager } = this.params;
     if (this.params.locking === 'read-write') {
       await storageManager.unlock(persistancePath);
     }
-    this.initiated = false
-    this._actor = undefined    
+    this.initiated = false;
+    this._actor = undefined;
   }
 }
 
 /**
  * Helper to initialize and manage a PersistedActor instance.
- * 
+ *
  * Handles setting up and tearing down the actor around a usage callback.
  *
  * @param params - Inputs for creating the PersistedActor
- * @param callback - Async callback to use the actor instance 
+ * @param callback - Async callback to use the actor instance
  */
 export async function withPersistedActor<TLogic extends AnyActorLogic>(
   params: WithPersistanceInput<TLogic>,
-  callback: (actor: Actor<TLogic>) => Promise<void>
+  callback: (actor: Actor<TLogic>) => Promise<void>,
 ) {
-  const _persistedActor = new PersistedActor(params)
+  const _persistedActor = new PersistedActor(params);
   try {
-    await _persistedActor.init()
-    await callback(_persistedActor.actor)
-    await _persistedActor.save()
+    await _persistedActor.init();
+    await callback(_persistedActor.actor);
+    await _persistedActor.save();
   } catch (error) {
-    throw error
+    throw error;
   } finally {
-    await _persistedActor.close()
+    await _persistedActor.close();
   }
 }

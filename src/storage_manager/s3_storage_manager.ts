@@ -1,5 +1,6 @@
 import { S3 } from 'aws-sdk';
-import { StorageManagerWithLocking } from '.';
+import { StorageManagerWithLocking, LockingManager } from './index';
+import { PersistanceLockError } from '../utils';
 
 /**
  * A StorageManager implementation for storing data on Amazon S3.
@@ -9,23 +10,40 @@ import { StorageManagerWithLocking } from '.';
  */
 export default class S3StorageManager extends StorageManagerWithLocking {
   private s3: S3;
-  private bucketName: string;
 
   /**
-   * Initializes an instance of the S3StorageManager with the given parameters.
+   * S3-backed persistent storage manager.
+   * Provides data storage and locking using AWS S3 and DynamoDB.
+   * @param bucketName - S3 bucket for data storage
+   * @param awsAccessKey - IAM access key ID (optional)
+   * @param awsSecretKey - IAM secret access key (optional)
+   * @param lockingManager - Handles lock acquisition
    *
-   * @param bucketName - Name of the S3 bucket to operate on.
-   * @param awsAccessKey - AWS access key ID (optional if configured elsewhere).
-   * @param awsSecretKey - AWS secret access key (optional if configured elsewhere).
+   * **Usage**:
+   *
+   * const storage = new S3StorageManager({
+   *   bucket: 'my-bucket',
+   *   lockingManager: new DynamoLockingManager();
+   * });
+   *
+   * // Save, load, delete data from S3
+   * // Use lock() and unlock() for safe access
+   *
+   * Authentication:
+   *
+   * The AWS access keys are optional. If not provided, the default
+   * credential provider chain will be used. Required permissions:
+   *
+   * - s3:GetObject, s3:PutObject on storage bucket
+   * - dynamodb:GetItem, dynamodb:PutItem on locking table
    */
   constructor(
-    bucketName: string,
+    private bucketName: string,
     private awsAccessKey?: string,
     private awsSecretKey?: string,
+    private lockingManager?: LockingManager,
   ) {
     super();
-    this.bucketName = bucketName;
-
     this.s3 = new S3({
       accessKeyId: this.awsAccessKey,
       secretAccessKey: this.awsSecretKey,
@@ -106,10 +124,20 @@ export default class S3StorageManager extends StorageManagerWithLocking {
   }
 
   async lock(path: string): Promise<Boolean> {
-    return true;
+    if (!this.lockingManager) {
+      throw new PersistanceLockError(
+        `[lock(path=${path})] LockingManager not provided.`,
+      );
+    }
+    return await this.lockingManager.lock(path);
   }
 
   async unlock(path: string): Promise<Boolean> {
-    return true;
+    if (!this.lockingManager) {
+      throw new PersistanceLockError(
+        `[unlock(path=${path})] LockingManager not provided.`,
+      );
+    }
+    return await this.lockingManager.unlock(path);
   }
 }

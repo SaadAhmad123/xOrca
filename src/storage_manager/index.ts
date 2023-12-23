@@ -1,11 +1,12 @@
 /**
- * Abstract base class representing a generic storage manager.
+ * Abstract base class representing a storage manager with locking capabilities.
  *
  * This class provides an interface for basic storage operations,
  * such as writing, reading, deleting, and checking the existence of data.
+ * More over adds support for locking/unlocking access to specific paths.
  * Implementations should provide concrete implementations for these operations.
  */
-export default abstract class StorageManager {
+export abstract class StorageManagerWithLocking {
   /**
    * Writes the specified data to the specified path.
    *
@@ -37,15 +38,30 @@ export default abstract class StorageManager {
    * @returns True if the data exists, False otherwise.
    */
   abstract exists(path: string): Promise<boolean>;
+
+  /**
+   * Acquires a lock on the specified path.
+   *
+   * @param path - The path to lock
+   * @returns A promise resolving to true if the lock was acquired, false otherwise.
+   */
+  abstract lock(path: string): Promise<Boolean>;
+
+  /**
+   * Releases a previously acquired lock on the specified path.
+   *
+   * @param path - The path to unlock
+   * @returns A promise resolving once the lock has been released.
+   */
+  abstract unlock(path: string): Promise<Boolean>;
 }
 
 /**
- * Abstract base class representing a storage manager with locking capabilities.
+ * Manager for controlling access locks
  *
- * This class extends the base StorageManager class and adds support for
- * locking/unlocking access to specific paths.
+ * Can be used independently of storage manager
  */
-export abstract class StorageManagerWithLocking extends StorageManager {
+export abstract class LockingManager {
   /**
    * Acquires a lock on the specified path.
    *

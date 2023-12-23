@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { StorageManagerWithLocking } from './index';
+import { StorageManagerWithLocking, LockingManager } from './index';
+import { PersistanceLockError } from '../utils';
 
 /**
  * A local storage manager implementation using the Node.js file system.
@@ -11,16 +12,17 @@ import { StorageManagerWithLocking } from './index';
  * specified root directory.
  */
 export default class LocalFileStorageManager extends StorageManagerWithLocking {
-  private rootDir: string;
-
   /**
    * Initializes a new instance of the LocalFileStorageManager.
    *
    * @param rootDir - The root directory for the file storage.
+   * @param lockingManager - Handles lock acquisition
    */
-  constructor(rootDir: string) {
+  constructor(
+    private rootDir: string,
+    private lockingManager?: LockingManager,
+  ) {
     super();
-    this.rootDir = rootDir;
   }
 
   /**
@@ -92,10 +94,20 @@ export default class LocalFileStorageManager extends StorageManagerWithLocking {
   }
 
   async lock(path: string): Promise<Boolean> {
-    return true;
+    if (!this.lockingManager) {
+      throw new PersistanceLockError(
+        `[lock(path=${path})] LockingManager not provided.`,
+      );
+    }
+    return await this.lockingManager.lock(path);
   }
 
   async unlock(path: string): Promise<Boolean> {
-    return true;
+    if (!this.lockingManager) {
+      throw new PersistanceLockError(
+        `[unlock(path=${path})] LockingManager not provided.`,
+      );
+    }
+    return await this.lockingManager.unlock(path);
   }
 }
