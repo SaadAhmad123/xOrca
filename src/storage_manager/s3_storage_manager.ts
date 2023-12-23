@@ -1,5 +1,5 @@
 import { S3 } from 'aws-sdk';
-import StorageManager from '.';
+import { StorageManagerWithLocking } from '.';
 
 /**
  * A StorageManager implementation for storing data on Amazon S3.
@@ -7,7 +7,7 @@ import StorageManager from '.';
  * This class provides methods to write, read, delete, and check existence
  * of files in a specified S3 bucket.
  */
-export default class S3StorageManager extends StorageManager {
+export default class S3StorageManager extends StorageManagerWithLocking {
   private s3: S3;
   private bucketName: string;
 
@@ -103,5 +103,13 @@ export default class S3StorageManager extends StorageManager {
         throw error;
       }
     }
+  }
+
+  async lock(path: string): Promise<Boolean> {
+    return true;
+  }
+
+  async unlock(path: string): Promise<Boolean> {
+    return true;
   }
 }

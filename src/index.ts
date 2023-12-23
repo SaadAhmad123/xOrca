@@ -1,11 +1,15 @@
-import StorageManager from './storage_manager';
+import StorageManager, { StorageManagerWithLocking } from './storage_manager';
 import LocalFileStorageManager from './storage_manager/local_file_storage_manager';
 import S3StorageManager from './storage_manager/s3_storage_manager';
-import withPersistance from './with_persistant';
+import PersistedActor, { withPersistedActor  } from './persisted_actor';
+import { PersistanceLockError } from './utils';
 
 export {
   StorageManager,
+  StorageManagerWithLocking,
   LocalFileStorageManager,
   S3StorageManager,
-  withPersistance,
+  PersistedActor,
+  PersistanceLockError,
+  withPersistedActor,
 };

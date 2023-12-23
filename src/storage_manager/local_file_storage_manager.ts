@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import StorageManager from './index';
+import { StorageManagerWithLocking } from './index';
 
 /**
  * A local storage manager implementation using the Node.js file system.
@@ -10,7 +10,7 @@ import StorageManager from './index';
  * the Node.js file system. All paths provided are considered relative to the
  * specified root directory.
  */
-export default class LocalFileStorageManager extends StorageManager {
+export default class LocalFileStorageManager extends StorageManagerWithLocking {
   private rootDir: string;
 
   /**
@@ -89,5 +89,13 @@ export default class LocalFileStorageManager extends StorageManager {
    */
   async exists(relativePath: string): Promise<boolean> {
     return fs.existsSync(path.join(this.rootDir, relativePath));
+  }
+
+  async lock(path: string): Promise<Boolean> {
+    return true;
+  }
+
+  async unlock(path: string): Promise<Boolean> {
+    return true;
   }
 }

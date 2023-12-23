@@ -38,3 +38,27 @@ export default abstract class StorageManager {
    */
   abstract exists(path: string): Promise<boolean>;
 }
+
+/**
+ * Abstract base class representing a storage manager with locking capabilities.
+ *
+ * This class extends the base StorageManager class and adds support for
+ * locking/unlocking access to specific paths.
+ */
+export abstract class StorageManagerWithLocking extends StorageManager {
+  /**
+   * Acquires a lock on the specified path.
+   *
+   * @param path - The path to lock
+   * @returns A promise resolving to true if the lock was acquired, false otherwise.
+   */
+  abstract lock(path: string): Promise<Boolean>;
+
+  /**
+   * Releases a previously acquired lock on the specified path.
+   *
+   * @param path - The path to unlock
+   * @returns A promise resolving once the lock has been released.
+   */
+  abstract unlock(path: string): Promise<Boolean>;
+}
