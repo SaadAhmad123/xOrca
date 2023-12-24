@@ -3,22 +3,19 @@ import { WithPersistanceInput } from './types';
 import { acquireLock } from './utils';
 
 /**
- * Actor with persistence and locking capabilities
+ * Actor with persistence and locking capabilities.
  *
  * Wraps an underlying actor and handles saving/restoring state
- * using a lock-enabled StorageManager.
- *
- * Allows specifying a locking mode:
+ * using a lock-enabled StorageManager. Allows specifying a locking mode:
  * - "write" - only lock during write operations
  * - "read-write" - lock during reads and writes
  *
  * Usage:
- *
  * 1. Construct with params
  * 2. Call init() to initialize actor
- * 3. Access actor instance from getter
+ * 3. Access actor instance from the getter
  * 4. Call save() periodically to persist state
- * 5. Call close() to cleanup resources
+ * 5. Call close() to clean up resources
  */
 export default class PersistedActor<TLogic extends AnyActorLogic> {
   private params: WithPersistanceInput<TLogic> & {
@@ -40,6 +37,7 @@ export default class PersistedActor<TLogic extends AnyActorLogic> {
   constructor(params: WithPersistanceInput<TLogic>) {
     this.params = {
       ...params,
+      acquireLockMaxTimeout: params.acquireLockMaxTimeout || 5000,
       persistancePath: `${params.id}.json`,
     };
   }
@@ -58,22 +56,26 @@ export default class PersistedActor<TLogic extends AnyActorLogic> {
   }
 
   /**
-   * Initializes actor state from storage
-   *
-   * 1. Acquires lock if locking=read-write
-   * 2. Loads snapshot from storage
-   * 3. Initializes actor via creator fn
-   *
-   * @throws {Error} If already initiated
+   * Initializes actor state from storage.
+   * 
+   * Steps:
+   * 1. Acquires lock if locking=read-write.
+   * 2. Loads snapshot from storage.
+   * 3. Initializes actor via creator function.
+   * 
+   * @param checkForAlreadyInitiated - Flag to check if the actor has already been initiated.
+   * @throws Error if the actor is already initiated.
    */
-  async init() {
-    if (this.initiated) {
+  async init(checkForAlreadyInitiated = true) {
+    if (checkForAlreadyInitiated && this.initiated) {
       throw new Error('Actor already initiated, close it to re-initiate');
     }
     const { locking, persistancePath, storageManager, id, actorCreator } =
       this.params;
     if (locking === 'read-write') {
-      await acquireLock(persistancePath, storageManager);
+      const timeout = this.params.acquireLockMaxTimeout || 5000
+      const retryDelay = 200
+      await acquireLock(persistancePath, storageManager, timeout / retryDelay, retryDelay);
     }
     const snapshotJson = await storageManager.read(persistancePath, '');
     const snapshot: Snapshot<unknown> | undefined = snapshotJson
@@ -94,7 +96,9 @@ export default class PersistedActor<TLogic extends AnyActorLogic> {
   async save() {
     const { locking, persistancePath, storageManager } = this.params;
     if (locking === 'write') {
-      await acquireLock(persistancePath, storageManager);
+      const timeout = this.params.acquireLockMaxTimeout || 5000
+      const retryDelay = 200
+      await acquireLock(persistancePath, storageManager, timeout / retryDelay, retryDelay);
     }
     await storageManager.write(
       JSON.stringify(this.actor.getPersistedSnapshot()),

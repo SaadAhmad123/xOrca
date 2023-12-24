@@ -28,4 +28,5 @@ export type WithPersistanceInput<TLogic extends AnyActorLogic> = {
    * This is optional. If not provided, no locking will be done
    */
   locking?: 'write' | 'read-write';
+  acquireLockMaxTimeout?: number
 };

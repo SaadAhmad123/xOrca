@@ -41,12 +41,14 @@ export default class S3StorageManager extends StorageManagerWithLocking {
     private bucketName: string,
     private awsAccessKey?: string,
     private awsSecretKey?: string,
+    private awsRegion?: string,
     private lockingManager?: LockingManager,
   ) {
     super();
     this.s3 = new S3({
       accessKeyId: this.awsAccessKey,
       secretAccessKey: this.awsSecretKey,
+      region: this.awsRegion,
     });
   }
 
@@ -123,6 +125,13 @@ export default class S3StorageManager extends StorageManagerWithLocking {
     }
   }
 
+  /**
+   * Acquires a lock on the specified resource path.
+   *
+   * @param path - The resource path to lock
+   * @throws {PersistanceLockError} If no locking manager provided
+   * @returns True if lock acquired successfully, false otherwise
+   */
   async lock(path: string): Promise<Boolean> {
     if (!this.lockingManager) {
       throw new PersistanceLockError(
@@ -132,6 +141,13 @@ export default class S3StorageManager extends StorageManagerWithLocking {
     return await this.lockingManager.lock(path);
   }
 
+  /**
+   * Releases the lock on the specified resource path.
+   *
+   * @param path - The resource path to unlock
+   * @throws {PersistanceLockError} If no locking manager provided  
+   * @returns True if lock released successfully, false otherwise
+   */
   async unlock(path: string): Promise<Boolean> {
     if (!this.lockingManager) {
       throw new PersistanceLockError(

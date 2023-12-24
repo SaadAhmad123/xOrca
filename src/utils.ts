@@ -39,7 +39,9 @@ export async function acquireLock(
   for (let i = 0; i < maxRetry; i++) {
     const lockAcquired = await storageManger.lock(pathToLock);
     if (lockAcquired) return;
-    await waitForTime(retryWait);
+    if (i < maxRetry) {
+      await waitForTime(retryWait);
+    }
   }
   throw new PersistanceLockError(
     `Could not acquire lock on path ${pathToLock}.`,

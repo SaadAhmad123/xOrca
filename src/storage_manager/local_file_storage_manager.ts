@@ -93,6 +93,13 @@ export default class LocalFileStorageManager extends StorageManagerWithLocking {
     return fs.existsSync(path.join(this.rootDir, relativePath));
   }
 
+  /**
+   * Acquires a lock on the specified file path.
+   *
+   * @param path - The file path to lock
+   * @throws {PersistanceLockError} If no locking manager provided
+   * @returns True if lock acquired successfully, false otherwise
+   */
   async lock(path: string): Promise<Boolean> {
     if (!this.lockingManager) {
       throw new PersistanceLockError(
@@ -102,6 +109,13 @@ export default class LocalFileStorageManager extends StorageManagerWithLocking {
     return await this.lockingManager.lock(path);
   }
 
+  /**
+   * Releases the lock on the specified file path.
+   *
+   * @param path - The file path to unlock
+   * @throws {PersistanceLockError} If no locking manager provided  
+   * @returns True if lock released successfully, false otherwise
+   */
   async unlock(path: string): Promise<Boolean> {
     if (!this.lockingManager) {
       throw new PersistanceLockError(
