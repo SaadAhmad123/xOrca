@@ -1,10 +1,22 @@
 {
-  "name": "durable-x-state",
-  "version": "1.1.3",
-  "description": "This is a durable wrapper for xstate",
+  "name": "persistable-xstate-actor",
+  "version": "0.0.1",
+  "description": "This is a scalable library for managing state in serverless applications, offering persistence and locking for xState actors.",
   "main": "dist/index.js",
   "license": "MIT",
-  "keywords": ["xstate", "serverless", "orchestration", "persistance", "persistant", "actor", "durable", "state machine", "s3", "dynamodb", "aws"],
+  "keywords": [
+    "xstate",
+    "serverless",
+    "orchestration",
+    "persistance",
+    "persistant",
+    "actor",
+    "durable",
+    "state machine",
+    "s3",
+    "dynamodb",
+    "aws"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/index.js",
@@ -17,6 +29,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1478.0",
+    "unified-serverless-storage": "^0.0.6",
     "xstate": "^5.3.1"
   },
   "devDependencies": {

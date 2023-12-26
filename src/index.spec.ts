@@ -1,12 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { LocalFileStorageManager, PersistanceLockError, PersistedActor, withPersistedActor } from '.';
+import { PersistableActor, withPersistableActor } from '.';
 import trafficStateMachine from './index.spec.data';
-import { WithPersistanceInput } from './types';
+import { PersistableActorInput } from './types';
 import { createActor } from 'xstate';
 import { config } from 'dotenv';
-import DynamoLockingManager from './storage_manager/dynamo_locking_manager';
-import { DynamoDbManager } from './storage_manager/dyanmo_locking_manager.spec.lib';
+import { DynamoLockingManager, LocalFileStorageManager, LockableStorageManager } from 'unified-serverless-storage';
+import { DynamoDbManager } from './index.spec.lib'
 config();
 
 const { AWS_ACCESS_KEY, AWS_SECRET_KEY, TEST_DYNAMO_DB_NAME, AWS_REGION } =
@@ -14,12 +14,6 @@ const { AWS_ACCESS_KEY, AWS_SECRET_KEY, TEST_DYNAMO_DB_NAME, AWS_REGION } =
 
 
 const tableName = `${TEST_DYNAMO_DB_NAME}-wp`
-const lockingManager = new DynamoLockingManager(
-  tableName,
-  AWS_ACCESS_KEY,
-  AWS_SECRET_KEY,
-  AWS_REGION,
-);
 
 const dynamoManager = new DynamoDbManager(
   tableName,
@@ -32,6 +26,7 @@ const dynamoManager = new DynamoDbManager(
 describe('Testing with persistance', () => {
   let rootDir: string;
   let manager: LocalFileStorageManager;
+  let lockingManager: DynamoLockingManager;
   const persistanceId: string = 'saad';
 
   const getPersistedActorParams = (
@@ -42,7 +37,10 @@ describe('Testing with persistance', () => {
       acquireLockMaxTimeout: 1000,
       locking,
       id: persistanceId,
-      storageManager: manager,
+      storageManager: new LockableStorageManager({
+        storageManager: manager,
+        lockingManager: lockingManager,
+      }),
       actorCreator: (id, snapshot) =>
         createActor(trafficStateMachine, {
           id,
@@ -51,7 +49,7 @@ describe('Testing with persistance', () => {
             count: -1 / 4,
           },
         }),
-    }) as WithPersistanceInput<typeof trafficStateMachine>;
+    }) as PersistableActorInput<typeof trafficStateMachine>;
 
   beforeAll(async () => {
     // Create a temporary directory for testing
@@ -59,7 +57,7 @@ describe('Testing with persistance', () => {
     if (!fs.existsSync(rootDir)) {
       fs.mkdirSync(rootDir);
     }
-    manager = new LocalFileStorageManager(rootDir, lockingManager);
+    manager = new LocalFileStorageManager(rootDir);
   });
 
   afterAll(() => {
@@ -74,6 +72,12 @@ describe('Testing with persistance', () => {
         `DynamoDB table=${TEST_DYNAMO_DB_NAME} not ready to be used`,
       );
     }
+    lockingManager = new DynamoLockingManager(
+      tableName,
+      AWS_ACCESS_KEY,
+      AWS_SECRET_KEY,
+      AWS_REGION,
+    );
   }, 40000);
 
   afterAll(async () => {
@@ -82,7 +86,7 @@ describe('Testing with persistance', () => {
   }, 10000);
 
   it('[No Locking] It should load no snapshot when no state available and then persist the state after an update', async () => {
-    await withPersistedActor(getPersistedActorParams(persistanceId), async (actor) => {
+    await withPersistableActor(getPersistedActorParams(persistanceId), async (actor) => {
       actor.start();
       expect(actor.getSnapshot().value).toBe('Green');
       expect(actor.getSnapshot().context.count).toBe(0);
@@ -94,7 +98,7 @@ describe('Testing with persistance', () => {
   });
 
   it('[No Locking] It should load from the old persisted state and then act on it', async () => {
-    await withPersistedActor(getPersistedActorParams(persistanceId), async (actor) => {
+    await withPersistableActor(getPersistedActorParams(persistanceId), async (actor) => {
       actor.start();
       expect(actor.getSnapshot().value).toBe('Yellow');
       expect(actor.getSnapshot().context.count).toBe(0.25);
@@ -114,7 +118,7 @@ describe('Testing with persistance', () => {
   it('[With Locking] It should load no snapshot when no state available and then persist the state after an update', async () => {
 
     const pid = `wp-${persistanceId}`
-    const persistedActor = new PersistedActor(
+    const persistedActor = new PersistableActor(
       getPersistedActorParams(
         pid, 
         "read-write"
@@ -126,7 +130,7 @@ describe('Testing with persistance', () => {
     await expect(persistedActor.init(false)).rejects.toThrow(`Could not acquire lock on path ${pid}.json.`)
     await persistedActor.close()
 
-    await withPersistedActor(getPersistedActorParams(
+    await withPersistableActor(getPersistedActorParams(
       `wp-${persistanceId}`, 
       "read-write"
     ), async (actor) => {

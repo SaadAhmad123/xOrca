@@ -2370,6 +2370,13 @@ undici-types@~5.25.1:
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-5.25.3.tgz#e044115914c85f0bcbb229f346ab739f064998c3"
   integrity sha512-Ga1jfYwRn7+cP9v8auvEXN1rX3sWqlayd4HP7OKk4mZWylEmu3KzXDUGrQUN6Ol7qo1gPvB2e5gX6udnyEPgdA==
 
+unified-serverless-storage@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/unified-serverless-storage/-/unified-serverless-storage-0.0.6.tgz#12e1966aa39ba6b66a54aa2616ae0142b95c0d54"
+  integrity sha512-UmJJVKrkNA9J5+lXf8Yq0L0rPilumWrgAwSbDBMhrGXsnm8XSTKj5JdcMpau/g/O+k+mf/3YEIda/7ZcQ5TlYg==
+  dependencies:
+    aws-sdk "^2.1478.0"
+
 update-browserslist-db@^1.0.13:
   version "1.0.13"
   resolved "https://registry.yarnpkg.com/update-browserslist-db/-/update-browserslist-db-1.0.13.tgz#3c5e4f5c083661bd38ef64b6328c26ed6c8248c4"

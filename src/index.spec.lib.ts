@@ -27,7 +27,7 @@ export class DynamoDbManager {
     private awsRegion?: string,
   ) {
     if (!tableName) {
-      throw new Error(`[DynamoDbManager] The table name cannot be empty`)
+      throw new Error(`[DynamoDbManager] The table name cannot be empty`);
     }
 
     AWS.config.update({
