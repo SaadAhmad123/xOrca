@@ -63,8 +63,19 @@ import { createActor } from 'xstate';
 import { DynamoLockingManager, LocalFileStorageManager, LockableStorageManager } from 'unified-serverless-storage';
 
 const actor = new PersistedActor({
-  // Configuration for persisted actor
-  // ... 
+  acquireLockMaxTimeout: 1000,
+  locking,
+  id: persistanceId,
+  storageManager: new LockableStorageManager({
+    storageManager: manager,
+    lockingManager: lockingManager,
+  }),
+  actorCreator: (id, snapshot) =>
+    createActor(someXStateMachine, {
+      id,
+      snapshot,
+      input: {/* ..xstate context input.. */},
+    }),
 });
 
 // Interaction with the actor
