@@ -1,4 +1,4 @@
-#  A Library for persistable xstate v5 actors
+# A Library for persistable xstate v5 actors
 
 The `persistable-xstate-actor` library is a sophisticated and scalable tool for managing state in distributed and serverless applications. It introduces two pivotal constructs for xState actor state management: `PersistableActor` and `withPersistableActor`. These constructs are crafted to integrate flawlessly with the xstate library, offering enhanced persistence and locking capabilities to promote consistency and resilience in stateful applications and orchestrations.
 
@@ -7,13 +7,15 @@ Leveraging [`unified-serverless-storage`](https://www.npmjs.com/package/unified-
 ## Easy Installation
 
 Install using npm:
+
 ```bash
-npm install persistable-xstate-actor
+npm install persistable-xstate-actor aws-sdk unified-serverless-storage
 ```
 
 Or via yarn:
+
 ```bash
-yarn add persistable-xstate-actor
+yarn add persistable-xstate-actor aws-sdk unified-serverless-storage
 ```
 
 ## Core Features
@@ -60,7 +62,11 @@ Ideal for short-lived operations or tasks requiring an actor, it ensures efficie
 
 ```typescript
 import { createActor } from 'xstate';
-import { DynamoLockingManager, LocalFileStorageManager, LockableStorageManager } from 'unified-serverless-storage';
+import {
+  DynamoLockingManager,
+  LocalFileStorageManager,
+  LockableStorageManager,
+} from 'unified-serverless-storage';
 
 const actor = new PersistedActor({
   acquireLockMaxTimeout: 1000,
@@ -74,7 +80,9 @@ const actor = new PersistedActor({
     createActor(someXStateMachine, {
       id,
       snapshot,
-      input: {/* ..xstate context input.. */},
+      input: {
+        /* ..xstate context input.. */
+      },
     }),
 });
 
@@ -105,4 +113,4 @@ For queries or feedback, feel free to open an issue in our [GitHub repository](h
 
 ## License
 
-This project is under the MIT License. For more details, refer to the [LICENSE.md](/LICENSE.md) file. 
+This project is under the MIT License. For more details, refer to the [LICENSE.md](/LICENSE.md) file.

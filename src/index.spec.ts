@@ -5,15 +5,18 @@ import trafficStateMachine from './index.spec.data';
 import { PersistableActorInput } from './types';
 import { createActor } from 'xstate';
 import { config } from 'dotenv';
-import { DynamoLockingManager, LocalFileStorageManager, LockableStorageManager } from 'unified-serverless-storage';
-import { DynamoDbManager } from './index.spec.lib'
+import {
+  DynamoLockingManager,
+  LocalFileStorageManager,
+  LockableStorageManager,
+} from 'unified-serverless-storage';
+import { DynamoDbManager } from './index.spec.lib';
 config();
 
 const { AWS_ACCESS_KEY, AWS_SECRET_KEY, TEST_DYNAMO_DB_NAME, AWS_REGION } =
   process.env;
 
-
-const tableName = `${TEST_DYNAMO_DB_NAME}-wp`
+const tableName = `${TEST_DYNAMO_DB_NAME}-wp`;
 
 const dynamoManager = new DynamoDbManager(
   tableName,
@@ -21,7 +24,6 @@ const dynamoManager = new DynamoDbManager(
   AWS_SECRET_KEY,
   AWS_REGION,
 );
-
 
 describe('Testing with persistance', () => {
   let rootDir: string;
@@ -86,62 +88,67 @@ describe('Testing with persistance', () => {
   }, 10000);
 
   it('[No Locking] It should load no snapshot when no state available and then persist the state after an update', async () => {
-    await withPersistableActor(getPersistedActorParams(persistanceId), async (actor) => {
-      actor.start();
-      expect(actor.getSnapshot().value).toBe('Green');
-      expect(actor.getSnapshot().context.count).toBe(0);
-      actor.send({ type: 'HALT' });
-      expect(actor.getSnapshot().value).toBe('Yellow');
-      expect(actor.getSnapshot().context.count).toBe(0.25);
-      actor.stop();
-    });
+    await withPersistableActor(
+      getPersistedActorParams(persistanceId),
+      async (actor) => {
+        actor.start();
+        expect(actor.getSnapshot().value).toBe('Green');
+        expect(actor.getSnapshot().context.count).toBe(0);
+        actor.send({ type: 'HALT' });
+        expect(actor.getSnapshot().value).toBe('Yellow');
+        expect(actor.getSnapshot().context.count).toBe(0.25);
+        actor.stop();
+      },
+    );
   });
 
   it('[No Locking] It should load from the old persisted state and then act on it', async () => {
-    await withPersistableActor(getPersistedActorParams(persistanceId), async (actor) => {
-      actor.start();
-      expect(actor.getSnapshot().value).toBe('Yellow');
-      expect(actor.getSnapshot().context.count).toBe(0.25);
-      actor.send({ type: 'HALT' });
-      expect(actor.getSnapshot().value).toBe('Red');
-      expect(actor.getSnapshot().context.count).toBe(0.5);
-      actor.send({ type: 'HALT' });
-      expect(actor.getSnapshot().value).toBe('Red');
-      expect(actor.getSnapshot().context.count).toBe(0.5);
-      actor.send({ type: 'MOVE' });
-      expect(actor.getSnapshot().value).toBe('Yellow');
-      expect(actor.getSnapshot().context.count).toBe(0.75);
-      actor.stop();
-    });
+    await withPersistableActor(
+      getPersistedActorParams(persistanceId),
+      async (actor) => {
+        actor.start();
+        expect(actor.getSnapshot().value).toBe('Yellow');
+        expect(actor.getSnapshot().context.count).toBe(0.25);
+        actor.send({ type: 'HALT' });
+        expect(actor.getSnapshot().value).toBe('Red');
+        expect(actor.getSnapshot().context.count).toBe(0.5);
+        actor.send({ type: 'HALT' });
+        expect(actor.getSnapshot().value).toBe('Red');
+        expect(actor.getSnapshot().context.count).toBe(0.5);
+        actor.send({ type: 'MOVE' });
+        expect(actor.getSnapshot().value).toBe('Yellow');
+        expect(actor.getSnapshot().context.count).toBe(0.75);
+        actor.stop();
+      },
+    );
   });
 
   it('[With Locking] It should load no snapshot when no state available and then persist the state after an update', async () => {
-
-    const pid = `wp-${persistanceId}`
+    const pid = `wp-${persistanceId}`;
     const persistedActor = new PersistableActor(
-      getPersistedActorParams(
-        pid, 
-        "read-write"
-      )
-    )
+      getPersistedActorParams(pid, 'read-write'),
+    );
 
-    await persistedActor.init()
-    await expect(persistedActor.init()).rejects.toThrow(`Actor already initiated, close it to re-initiate`)
-    await expect(persistedActor.init(false)).rejects.toThrow(`Could not acquire lock on path ${pid}.json.`)
-    await persistedActor.close()
+    await persistedActor.init();
+    await expect(persistedActor.init()).rejects.toThrow(
+      `Actor already initiated, close it to re-initiate`,
+    );
+    await expect(persistedActor.init(false)).rejects.toThrow(
+      `Could not acquire lock on path ${pid}.json.`,
+    );
+    await persistedActor.close();
 
-    await withPersistableActor(getPersistedActorParams(
-      `wp-${persistanceId}`, 
-      "read-write"
-    ), async (actor) => {
-      actor.start();
-      expect(actor.getSnapshot().value).toBe('Green');
-      expect(actor.getSnapshot().context.count).toBe(0);
-      actor.send({ type: 'HALT' });
-      expect(actor.getSnapshot().value).toBe('Yellow');
-      expect(actor.getSnapshot().context.count).toBe(0.25);
-      actor.stop();
-    });
+    await withPersistableActor(
+      getPersistedActorParams(`wp-${persistanceId}`, 'read-write'),
+      async (actor) => {
+        actor.start();
+        expect(actor.getSnapshot().value).toBe('Green');
+        expect(actor.getSnapshot().context.count).toBe(0);
+        actor.send({ type: 'HALT' });
+        expect(actor.getSnapshot().value).toBe('Yellow');
+        expect(actor.getSnapshot().context.count).toBe(0.25);
+        actor.stop();
+      },
+    );
   }, 10000);
-
 });

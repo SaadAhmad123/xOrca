@@ -19,7 +19,7 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
 
   /**
    * Constructs a new PersistedActor instance.
-   * 
+   *
    * @param params - The parameters for initializing the persisted actor, including the actor's ID,
    *                 the storage manager to use, and the actor creation logic.
    *                 The optional locking mode determines the lock acquisition strategy.
@@ -34,7 +34,7 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
 
   /**
    * Provides access to the underlying actor instance, ensuring it has been properly initialized.
-   * 
+   *
    * @throws {Error} Throws an error if the actor has not been initialized yet.
    */
   public get actor(): Actor<TLogic> {
@@ -48,7 +48,7 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
 
   /**
    * Initializes the actor by loading its state from the storage and setting it up with the provided actor creator.
-   * 
+   *
    * @param checkForAlreadyInitiated - A flag to prevent re-initialization if the actor has already been initiated.
    * @throws {Error} Throws an error if the actor is already initiated and re-initialization is attempted.
    */
@@ -59,9 +59,14 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
     const { locking, persistancePath, storageManager, id, actorCreator } =
       this.params;
     if (locking === 'read-write') {
-      const timeout = this.params.acquireLockMaxTimeout || 5000
-      const retryDelay = 200
-      await utils.acquireLock(persistancePath, storageManager, timeout / retryDelay, retryDelay);
+      const timeout = this.params.acquireLockMaxTimeout || 5000;
+      const retryDelay = 200;
+      await utils.acquireLock(
+        persistancePath,
+        storageManager,
+        timeout / retryDelay,
+        retryDelay,
+      );
     }
     const snapshotJson = await storageManager.read(persistancePath, '');
     const snapshot: Snapshot<unknown> | undefined = snapshotJson
@@ -73,15 +78,20 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
 
   /**
    * Persists the current state of the actor to the storage.
-   * 
+   *
    * The method ensures data integrity by optionally acquiring a lock before writing the actor's state.
    */
   async save() {
     const { locking, persistancePath, storageManager } = this.params;
     if (locking === 'write') {
-      const timeout = this.params.acquireLockMaxTimeout || 5000
-      const retryDelay = 200
-      await utils.acquireLock(persistancePath, storageManager, timeout / retryDelay, retryDelay);
+      const timeout = this.params.acquireLockMaxTimeout || 5000;
+      const retryDelay = 200;
+      await utils.acquireLock(
+        persistancePath,
+        storageManager,
+        timeout / retryDelay,
+        retryDelay,
+      );
     }
     await storageManager.write(
       JSON.stringify(this.actor.getPersistedSnapshot()),
@@ -94,7 +104,7 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
 
   /**
    * Cleans up resources associated with the actor and releases any locks if they were acquired.
-   * 
+   *
    * This method should be called to ensure graceful shutdown of the actor.
    */
   async close() {
