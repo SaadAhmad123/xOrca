@@ -28,7 +28,7 @@
     "node": ">=16.10.0"
   },
   "dependencies": {
-    "unified-serverless-storage": "^0.0.6",
+    "unified-serverless-storage": "^0.0.7",
     "xstate": "^5.3.1"
   },
   "devDependencies": {
