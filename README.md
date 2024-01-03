@@ -9,13 +9,13 @@ Leveraging [`unified-serverless-storage`](https://www.npmjs.com/package/unified-
 Install using npm:
 
 ```bash
-npm install persistable-xstate-actor aws-sdk unified-serverless-storage
+npm install persistable-xstate-actor aws-sdk unified-serverless-storage cloudevents
 ```
 
 Or via yarn:
 
 ```bash
-yarn add persistable-xstate-actor aws-sdk unified-serverless-storage
+yarn add persistable-xstate-actor aws-sdk unified-serverless-storage cloudevents
 ```
 
 ## Core Features

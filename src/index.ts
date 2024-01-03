@@ -2,6 +2,7 @@ import PersistableActor, { withPersistableActor } from './persistable_actor';
 import CloudOrchestrationActor, {
   orchestrateCloudEvents,
   createCloudOrchestrationActor,
+  assignEventDataToContext
 } from './cloud_orchestration_actor';
 import {
   PersistableActorInput,
@@ -20,6 +21,7 @@ export {
   orchestrateCloudEvents,
   createCloudOrchestrationActor,
   createCloudEvent,
+  assignEventDataToContext,
   PersistableActorInput as PersistableActorInputType,
   CloudEventMiddleware as CloudEventMiddlewareType,
   CloudOrchestrationStateMiddleware as CloudOrchestrationStateMiddlewareType,
