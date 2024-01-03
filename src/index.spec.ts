@@ -3,7 +3,7 @@ import * as path from 'path';
 import { PersistableActor, withPersistableActor } from '.';
 import trafficStateMachine from './index.spec.data';
 import { PersistableActorInput } from './types';
-import { createActor } from 'xstate';
+import { Actor, createActor } from 'xstate';
 import { config } from 'dotenv';
 import {
   DynamoLockingManager,
@@ -51,7 +51,10 @@ describe('Testing with persistance', () => {
             count: -1 / 4,
           },
         }),
-    }) as PersistableActorInput<typeof trafficStateMachine>;
+    }) as PersistableActorInput<
+      typeof trafficStateMachine,
+      Actor<typeof trafficStateMachine>
+    >;
 
   beforeAll(async () => {
     // Create a temporary directory for testing

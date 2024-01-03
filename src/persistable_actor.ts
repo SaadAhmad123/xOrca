@@ -1,4 +1,4 @@
-import { Actor, AnyActorLogic, Snapshot } from 'xstate';
+import { Actor, AnyActorLogic, Snapshot, TagsFrom } from 'xstate';
 import { PersistableActorInput } from './types';
 import { utils } from 'unified-serverless-storage';
 
@@ -10,11 +10,14 @@ import { utils } from 'unified-serverless-storage';
  * The class offers methods to initialize, save, and close the actor, managing its lifecycle
  * and ensuring data integrity through optional locking during state persistence.
  */
-export default class PersistableActor<TLogic extends AnyActorLogic> {
-  private params: PersistableActorInput<TLogic> & {
+export default class PersistableActor<
+  TLogic extends AnyActorLogic,
+  TActor extends Actor<TLogic>,
+> {
+  private params: PersistableActorInput<TLogic, TActor> & {
     persistancePath: string;
   };
-  private _actor: undefined | Actor<TLogic>;
+  private _actor: undefined | TActor;
   private initiated: Boolean = false;
 
   /**
@@ -24,7 +27,7 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
    *                 the storage manager to use, and the actor creation logic.
    *                 The optional locking mode determines the lock acquisition strategy.
    */
-  constructor(params: PersistableActorInput<TLogic>) {
+  constructor(params: PersistableActorInput<TLogic, TActor>) {
     this.params = {
       ...params,
       acquireLockMaxTimeout: params.acquireLockMaxTimeout || 5000,
@@ -37,7 +40,7 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
    *
    * @throws {Error} Throws an error if the actor has not been initialized yet.
    */
-  public get actor(): Actor<TLogic> {
+  public get actor(): TActor {
     if (!this._actor) {
       throw new Error(
         "No actor available. Use 'open' before fetching the actor",
@@ -127,11 +130,14 @@ export default class PersistableActor<TLogic extends AnyActorLogic> {
  * @param callback - An asynchronous callback function for performing actions with the actor instance.
  * @throws {Error} - Propagates any errors that occur during the actor's lifecycle.
  */
-export async function withPersistableActor<TLogic extends AnyActorLogic>(
-  params: PersistableActorInput<TLogic>,
-  callback: (actor: Actor<TLogic>) => Promise<void>,
+export async function withPersistableActor<
+  TLogic extends AnyActorLogic,
+  TActor extends Actor<TLogic>,
+>(
+  params: PersistableActorInput<TLogic, TActor>,
+  callback: (actor: TActor) => Promise<void>,
 ) {
-  const _persistedActor = new PersistableActor(params);
+  const _persistedActor = new PersistableActor<TLogic, TActor>(params);
   try {
     await _persistedActor.init();
     await callback(_persistedActor.actor);

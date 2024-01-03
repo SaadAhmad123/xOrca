@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES5", // Target ECMAScript version
+    "target": "ES2017", // Target ECMAScript version
     "module": "commonjs", // Module system
     "declaration": true, // Generates corresponding '.d.ts' file
     "outDir": "./dist", // Output directory for compiled JavaScript
