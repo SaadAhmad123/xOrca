@@ -5,7 +5,7 @@ import { StateValue, StateValueMap, createActor } from 'xstate';
 describe('Testing YAMLStateMachine', () => {
   it('should load a yaml state machine', async () => {
     const machine = createMachineYaml<Record<string, string>>(
-      readFile('createMachineYaml/createMachineYaml.spec.data.yaml'),
+      readFile('create_machine_yaml/create_machine_yaml.spec.data.yaml'),
     );
     let state: StateValue | StateValueMap = '';
     let context: Record<string, string> = {};

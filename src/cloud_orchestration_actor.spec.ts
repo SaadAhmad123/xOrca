@@ -13,7 +13,7 @@ import {
   IOrchestrateCloudEvents,
 } from './types';
 import { CloudEvent } from 'cloudevents';
-import { createMachineYaml } from './createMachineYaml';
+import { createMachineYaml } from './create_machine_yaml';
 import { readFile } from './utils';
 
 const orchestrationMiddleware: Record<

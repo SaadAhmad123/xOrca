@@ -1,5 +1,5 @@
 import { createMachine } from 'xstate';
-import { assignEventDataToContext } from '.';
+import { assignEventDataToContext } from './utils';
 
 type TriState = 'TRUE' | 'FALSE' | 'ERRORED';
 

@@ -16,15 +16,15 @@ import {
   assignEventDataToContext,
   assignLogsToContext,
 } from './utils';
-import { CreateMachineYamlError } from './createMachineYaml/errors';
+import { CreateMachineYamlError } from './create_machine_yaml/errors';
 import {
   GenericEventObject,
   GenericActionFunction,
   GenericGuardFunction,
   CreateMachineYamlOptions,
-} from './createMachineYaml/types';
-import { createMachineYaml } from './createMachineYaml';
-import { CreateStateMachineJSONSchemaValidator } from './createMachineYaml/schema';
+} from './create_machine_yaml/types';
+import { createMachineYaml } from './create_machine_yaml';
+import { CreateStateMachineJSONSchemaValidator } from './create_machine_yaml/schema';
 
 const Core = {
   PersistableActor,
