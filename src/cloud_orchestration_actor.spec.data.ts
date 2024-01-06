@@ -1,9 +1,9 @@
-import { assign, createMachine } from 'xstate';
-import { assignEventDataToContext } from './cloud_orchestration_actor';
+import { createMachine } from 'xstate';
+import { assignEventDataToContext } from '.';
 
 type TriState = 'TRUE' | 'FALSE' | 'ERRORED';
 
-type SummaryStateMachineContext = {
+export type SummaryStateMachineContext = {
   bookId: string;
   bookData?: string[];
   summary?: string;

@@ -101,6 +101,10 @@ await withPersistedActor(params, async (actor) => {
 });
 ```
 
+### CloudOrchestrationActor
+
+This is a an extention of the xState v5 Actor class which is design to be run in a short lived cloud environment and act as a orchestration/ rules state machien executor.
+
 #### Further Reading
 
 For comprehensive understanding of xState, visit the [official xState documentation](https://stately.ai/docs/quick-start). For understanding of `unified-serverless-storage`, visit the [npm package page](https://www.npmjs.com/package/unified-serverless-storage?activeTab=readme).

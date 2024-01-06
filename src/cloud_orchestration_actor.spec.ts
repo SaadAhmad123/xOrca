@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { orchestrateCloudEvents } from './cloud_orchestration_actor';
-import { summaryStateMachine } from './cloud_orchestration_actor.spec.data';
+import { SummaryStateMachineContext } from './cloud_orchestration_actor.spec.data';
 import { createCloudEvent } from './utils';
 import {
   LocalFileStorageManager,
@@ -12,6 +12,9 @@ import {
   CloudOrchestrationStateMiddleware,
   IOrchestrateCloudEvents,
 } from './types';
+import { CloudEvent } from 'cloudevents';
+import { createMachineYaml } from './createMachineYaml';
+import { readFile } from './utils';
 
 const orchestrationMiddleware: Record<
   string,
@@ -68,10 +71,16 @@ describe('Cloud Orchestration Actor Test', () => {
     fs.rmdirSync(rootDir, { recursive: true });
   });
 
+  const summaryStateMachine = createMachineYaml<SummaryStateMachineContext>(
+    readFile('cloud_orchestration_actor.spec.data.yaml'),
+  );
   const orchestrationParams: IOrchestrateCloudEvents<
     typeof summaryStateMachine
   > = {
-    statemachine: summaryStateMachine,
+    statemachine: {
+      version: '0.0.1',
+      logic: summaryStateMachine,
+    },
     storageManager: new LockableStorageManager({ storageManager: manager }),
     onOrchestrationState: orchestrationMiddleware,
   };
@@ -96,7 +105,7 @@ describe('Cloud Orchestration Actor Test', () => {
   });
 
   it('should emit a book fetch event when initiating the orchestration process with a book ID', async () => {
-    const eventsToEmit = await orchestrateCloudEvents(
+    const { eventsToEmit } = await orchestrateCloudEvents(
       orchestrationParams,
       [],
       [
@@ -113,7 +122,7 @@ describe('Cloud Orchestration Actor Test', () => {
   });
 
   it('should emit a summary event upon successful book data fetch', async () => {
-    const eventsToEmit = await orchestrateCloudEvents(orchestrationParams, [
+    const { eventsToEmit } = await orchestrateCloudEvents(orchestrationParams, [
       createCloudEvent({
         type: 'books.evt.fetch.success',
         subject: processId,
@@ -128,17 +137,70 @@ describe('Cloud Orchestration Actor Test', () => {
     expect(eventsToEmit[0].type).toBe('gpt.com.summary');
   });
 
+  it('should throw version miss match error', async () => {
+    let error: Error | undefined;
+    try {
+      await orchestrateCloudEvents(orchestrationParams, [
+        createCloudEvent({
+          type: 'gpt.evt.summary.success',
+          subject: processId,
+          source: '/regulation/summaryGrounded/',
+          data: {
+            summary: 'Some name',
+          },
+          statemachineversion: '1.0.1',
+        }),
+      ]);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error?.message).toBe(
+      '[cloudevent][Invalid state machine version] The event expects state machine version=1.0.1, however, the state machine is version=0.0.1',
+    );
+  });
+
+  it('should throw version datacontenttype validation error', async () => {
+    let error: Error | undefined;
+    try {
+      await orchestrateCloudEvents(orchestrationParams, [
+        new CloudEvent(
+          {
+            type: 'gpt.evt.summary.success',
+            subject: processId,
+            source: '/regulation/summaryGrounded/',
+            data: {
+              summary: 'Some name',
+            },
+            statemachineversion: '1.0.1',
+            datacontenttype: 'application/xml',
+          },
+          true,
+        ),
+      ]);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error?.message).toBe(
+      `[cloudevent][Invalid content type] The 'datacontenttype' must be either 'application/cloudevents+json' or 'application/json'. The given is datacontenttype=application/xml`,
+    );
+  });
+
   it('should emit compliance and grounded summary events upon successful summary generation', async () => {
-    const eventsToEmit = await orchestrateCloudEvents(orchestrationParams, [
-      createCloudEvent({
-        type: 'gpt.evt.summary.success',
-        subject: processId,
-        source: '/regulation/summaryGrounded/',
-        data: {
-          summary: 'Some name',
-        },
-      }),
-    ]);
+    const { eventsToEmit, processIdContext } = await orchestrateCloudEvents(
+      orchestrationParams,
+      [
+        createCloudEvent({
+          type: 'gpt.evt.summary.success',
+          subject: processId,
+          source: '/regulation/summaryGrounded/',
+          data: {
+            summary: 'Some name',
+          },
+          statemachineversion: '0.0.1',
+        }),
+      ],
+    );
+    console.log(JSON.stringify({ processIdContext }, null, 2));
     expect(eventsToEmit.length).toBe(2);
     const eventToEmitTypes = eventsToEmit.map((item) => item.type);
     expect(eventToEmitTypes.includes('regulations.com.summaryGrounded')).toBe(

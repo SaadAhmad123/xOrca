@@ -1,0 +1,73 @@
+id: RegulatedSummaryStateMachine
+context:
+  bookId: null
+  bookData: null
+  summary: null
+  grounded: false
+  compliant: false
+initial: FetchData
+states:
+  FetchData:
+    on:
+      books.evt.fetch.success:
+        target: Summarise
+        actions:
+          - updateContext
+          - updateLogs
+      books.evt.fetch.error:
+        target: Error
+        actions:
+          - updateLogs
+  Summarise:
+    on:
+      gpt.evt.summary.success:
+        target: Regulate
+        actions:
+          - updateContext
+          - updateLogs
+      gpt.evt.summary.error:
+        target: Error
+        actions:
+          - updateContext
+          - updateLogs
+  Regulate:
+    type: parallel
+    states:
+      Grounded:
+        initial: Check
+        states:
+          Check:
+            on:
+              regulations.evt.summaryGrounded.success:
+                target: Done
+                actions:
+                  - updateContext
+                  - updateLogs
+              regulations.evt.summaryGrounded.error:
+                target: Done
+                actions:
+                  - updateLogs
+          Done:
+            type: final
+      Compliant:
+        initial: Check
+        states:
+          Check:
+            on:
+              regulations.evt.summaryCompliance.success:
+                target: Done
+                actions:
+                  - updateContext
+                  - updateLogs
+              regulations.evt.summaryCompliance.error:
+                target: Done
+                actions:
+                  - updateLogs
+          Done:
+            type: final
+    onDone:
+      target: Done
+  Error:
+    type: final
+  Done:
+    type: final

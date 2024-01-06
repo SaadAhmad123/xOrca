@@ -1,6 +1,6 @@
 {
   "name": "persistable-xstate-actor",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "This is a scalable library for managing state in serverless applications, offering persistence and locking for xState actors.",
   "main": "dist/index.js",
   "license": "MIT",
@@ -28,13 +28,16 @@
     "node": ">=16.10.0"
   },
   "dependencies": {
+    "ajv": "^8.12.0",
     "cloudevents": "^8.0.0",
+    "js-yaml": "^4.1.0",
     "unified-serverless-storage": "^0.0.7",
     "xstate": "^5.3.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.6.2",
     "@types/jest": "^29.5.3",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.8.7",
     "aws-sdk": "^2.1478.0",
     "dotenv": "^16.3.1",

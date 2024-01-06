@@ -1,4 +1,7 @@
-import { CloudEvent } from 'cloudevents';
+import * as fs from 'fs';
+import * as path from 'path';
+import { CloudEvent, CloudEventV1 } from 'cloudevents';
+import { assign } from 'xstate';
 
 /**
  * Represents a path and its corresponding value in an object.
@@ -15,7 +18,7 @@ export type PathValue = {
  * @returns An array of PathValue, each containing a path and its corresponding value.
  * @throws Will throw an error if `obj` is not a string or an object.
  */
-export function getAllPaths(obj: any): PathValue[] {
+export function getAllPaths(obj: Record<string, any>): PathValue[] {
   if (!obj || !(typeof obj === 'string' || typeof obj === 'object')) {
     throw new Error(
       `[getAllPaths] the 'obj' type must be 'string' or 'object'. The given obj is '${obj}' of type '${typeof obj}'`,
@@ -55,6 +58,7 @@ export interface ICreateCloudEvent {
   source: string;
   type: string;
   data: Record<string, any>;
+  statemachineversion?: `${number}.${number}.${number}`;
 }
 
 /**
@@ -76,14 +80,124 @@ export interface ICreateCloudEvent {
  * - `type`: The topic or category under which this event falls.
  */
 export function createCloudEvent(params: ICreateCloudEvent) {
-  return new CloudEvent<Record<string, any>>(
-    {
-      source: params.source,
-      datacontenttype: 'application/json',
-      data: params.data,
-      subject: params.subject,
-      type: params.type,
-    },
-    true,
+  let data: Partial<CloudEventV1<Record<string, any>>> = {
+    source: params.source,
+    datacontenttype: 'application/cloudevents+json; charset=UTF-8',
+    data: params.data,
+    subject: params.subject,
+    type: params.type,
+  };
+  if (params.statemachineversion) {
+    data = {
+      ...data,
+      statemachineversion: params.statemachineversion,
+    };
+  }
+  return new CloudEvent<Record<string, any>>(data, true);
+}
+
+/**
+ * An XState action that assigns event data to the context, excluding the 'type' property of the event.
+ * This action is useful in scenarios where the context needs to be updated with new data from an event,
+ * but the event's type should not overwrite any existing context properties.
+ *
+ * @returns A context object updated with the data from the event, minus the event's type.
+ */
+export const assignEventDataToContext = assign(({ event, context }) => {
+  const { type, ...restOfEvent } = event;
+  return { ...context, ...restOfEvent };
+});
+
+/**
+ * An XState action that appends machine logs to the context, including information
+ * from the current event and context.
+ *
+ * @function
+ * @param {object} context - The current state machine context.
+ * @param {object} event - The current event that triggered the transition.
+ * @returns {object} A new context object containing the appended machine logs.
+ *
+ * @remarks
+ * This action is designed for logging purposes within an XState machine. It appends
+ * a log entry to the '__machineLogs' property in the context. Each log entry includes
+ * information such as CloudEvent ID, CloudEvent data, event details, context details,
+ * timestamp, and ISO timestamp.
+ *
+ * The resulting '__machineLogs' array provides a history of events and their associated
+ * data during the execution of the state machine.
+ *
+ * Example usage:
+ * ```typescript
+ * const machineConfig = {
+ *   // ... other machine configuration
+ *   actions: {
+ *     logMachineActivity: assignLogsToContext,
+ *     // ... other actions
+ *   },
+ * };
+ * ```
+ */
+export const assignLogsToContext = assign({
+  __machineLogs: ({ event, context }) => {
+    const { __machineLogs, __cloudevent, ...contextToLog } = context || {};
+    const { __cloudevent: ce, ...eventLog } = event || {};
+    return [
+      ...(context?.__machineLogs || []),
+      {
+        cloudeventId: (ce as any)?.id,
+        cloudevent: ce,
+        event: eventLog,
+        context: contextToLog,
+        timestamp: Date.now(),
+        isoTime: new Date().toISOString(),
+      },
+    ];
+  },
+});
+
+/**
+ * Check if an object is a dictionary-like object.
+ *
+ * @param obj - The object to check.
+ * @returns True if the object is a dictionary-like object, false otherwise.
+ */
+export function isDictionary(obj: Record<string, any>) {
+  return (
+    obj !== null &&
+    typeof obj === 'object' &&
+    obj.constructor === Object &&
+    Object.getPrototypeOf(obj) === Object.prototype
   );
+}
+
+/**
+ * Reads the content of a file synchronously.
+ * @param _path - The path to the file.
+ * @param __default - The default value to return if file reading fails (default is an empty string).
+ * @returns The content of the file as a string, or the default value if reading fails.
+ * @throws {Error} - Throws an error if reading the file encounters an issue.
+ *
+ * @example
+ * // Example Usage:
+ * // Assuming a file named 'example.txt' with content 'Hello, World!' exists in the same directory as the calling module.
+ * const fileContent = readFile('example.txt', 'Default Content');
+ * console.log(fileContent); // Output: 'Hello, World!'
+ *
+ * // Example with Default Value:
+ * // If the file 'nonexistent.txt' does not exist, the default value 'Default Content' will be returned.
+ * const nonExistentFileContent = readFile('nonexistent.txt', 'Default Content');
+ * console.log(nonExistentFileContent); // Output: 'Default Content'
+ */
+export function readFile(_path: string, __default: string = ''): string {
+  try {
+    // Read the file content synchronously using 'fs.readFileSync'.
+    // The path is calculated relative to the current module's directory using '__dirname'.
+    return fs.readFileSync(path.join(__dirname, _path), 'utf-8');
+  } catch (error) {
+    // Log the error message to the console.
+    console.error((error as Error).message);
+
+    // Return the default value if reading the file fails.
+    return __default;
+  }
 }

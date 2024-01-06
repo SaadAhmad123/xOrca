@@ -114,6 +114,16 @@ export type CloudOrchestrationActorOptions<TLogic extends AnyActorLogic> =
      * enabling complex scenarios in cloud-based applications.
      */
     middleware?: CloudOrchestratorMiddlewares;
+
+    /**
+     * State machine version.
+     */
+    version: `${number}.${number}.${number}`;
+
+    /**
+     * Id of the state machine
+     */
+    id: string;
   };
 
 /**
@@ -124,7 +134,10 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
   /**
    * The state machine logic that governs the behavior of the orchestration.
    */
-  statemachine: TLogic;
+  statemachine: {
+    version: `${number}.${number}.${number}`;
+    logic: TLogic;
+  };
 
   /**
    * The storage manager responsible for persisting the state of the orchestration.
@@ -151,4 +164,12 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
    * - "read-write": Locks are acquired during both read and write operations.
    */
   locking?: 'read' | 'read-write';
+
+  /**
+   * Function called on snapshot
+   * @param processId - the process id of the process
+   * @param snapshot - the snapshot which is emitted
+   * @returns
+   */
+  onSnapshot?: (processId: string, snapshot: SnapshotFrom<TLogic>) => void;
 }

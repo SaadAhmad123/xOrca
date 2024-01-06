@@ -6,14 +6,12 @@ import {
   EventFromLogic,
   InspectedSnapshotEvent,
   InspectionEvent,
-  assign,
 } from 'xstate';
 import { CloudEvent } from 'cloudevents';
 import {
   CloudOrchestratorMiddlewares,
   CloudOrchestrationActorOptions,
   IOrchestrateCloudEvents,
-  PersistableActorInput,
 } from './types';
 import { getAllPaths } from './utils';
 import { withPersistableActor } from './persistable_actor';
@@ -29,6 +27,7 @@ export default class CloudOrchestrationActor<
   private middleware: CloudOrchestratorMiddlewares | undefined;
   private orchestrationEvents: CloudEvent<Record<string, any>>[] = [];
   private _id: string;
+  private stateMachineVersion: `${number}.${number}.${number}`;
 
   /**
    * Constructor for CloudOrchestrationActor. Initializes the actor with given logic and options.
@@ -45,14 +44,16 @@ export default class CloudOrchestrationActor<
         'The orchestrator must have an id. This must be the orchestration process id',
       );
     }
-    const snapshotExists: boolean = Boolean(options?.snapshot);
-    let initiated: boolean = false;
+    const existingSnapshotCount: number = options?.snapshot
+      ? getAllPaths((options.snapshot as AnyMachineSnapshot).value || {}).length
+      : 0;
+    let initiatedCount: number = 0;
     super(logic, {
       ...options,
       inspect: (evt: InspectionEvent) => {
         if (evt.type === '@xstate.snapshot') {
-          if (snapshotExists && !initiated) {
-            initiated = true;
+          if (existingSnapshotCount > initiatedCount) {
+            initiatedCount += 1;
           } else {
             const _evt: InspectedSnapshotEvent = evt;
             this.processSnapshot(_evt.snapshot as AnyMachineSnapshot);
@@ -62,6 +63,7 @@ export default class CloudOrchestrationActor<
       },
     });
     this._id = options.id;
+    this.stateMachineVersion = options.version;
     this.middleware = options?.middleware;
   }
 
@@ -73,21 +75,29 @@ export default class CloudOrchestrationActor<
    * @param snapshot - The snapshot of the state machine, providing a complete picture of the current state.
    */
   private processSnapshot(snapshot: AnyMachineSnapshot) {
-    let paths: string[] = [];
-    const state = snapshot.value;
-    paths = getAllPaths(state).map((item) => {
-      if (!item.path.length) {
-        return item.value;
-      }
-      return `${item.path.map((i) => `#${i}`).join('.')}.${item.value}`;
-    });
-    this.orchestrationEvents = [
-      ...this.orchestrationEvents,
-      ...paths.map(
+    const orchEvts = getAllPaths(snapshot.value)
+      .map((item) => {
+        return !(item.path || []).length
+          ? item.value
+          : `${item.path.map((i) => `#${i}`).join('.')}.${item.value}`;
+      })
+      .map(
         (item) =>
           this.middleware?.orchestration?.[item]?.(this._id, item, snapshot),
-      ),
-    ].filter((item) => Boolean(item)) as CloudEvent<Record<string, any>>[];
+      )
+      .map((item) =>
+        item
+          ? new CloudEvent<Record<string, any>>(
+              {
+                ...item.toJSON(),
+                statemachineversion: this.stateMachineVersion,
+              },
+              true,
+            )
+          : undefined,
+      )
+      .filter((item) => Boolean(item)) as CloudEvent<Record<string, any>>[];
+    this.orchestrationEvents = [...this.orchestrationEvents, ...orchEvts];
   }
 
   /**
@@ -95,15 +105,39 @@ export default class CloudOrchestrationActor<
    * middleware to transform the CloudEvent before sending it to the actor's internal state machine.
    * This is essential for integrating external cloud events into the actor's workflow.
    *
-   * @param event - The CloudEvent to be processed.
-   * @returns The result of sending the transformed event to the actor's internal state machine.
+   * @public
+   * @param {CloudEvent<Record<string, any>>} event - The CloudEvent to be processed. It must be a structured cloudevent,
+   *                  [see](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/bindings/http-protocol-binding.md#32-structured-content-mode).
+   *                  That is, it must of of type CloudEvent<Record<string, any>> and it must be a JSON event.
+   * @throws Error - Throws an error if the 'datacontenttype' of the CloudEvent is not valid, or if
+   *                 the 'statemachineversion' specified in the CloudEvent does not match the actor's
+   *                 state machine version. The error message provides details about the nature of
+   *                 the validation failure.
    */
-  cloudevent(event: CloudEvent<Record<string, any>>) {
+  cloudevent(event: CloudEvent<Record<string, any>>): void {
+    if (
+      !event.datacontenttype ||
+      !(
+        event.datacontenttype.includes('application/cloudevents+json') ||
+        event.datacontenttype.includes('application/json')
+      )
+    ) {
+      throw new Error(
+        `[cloudevent][Invalid content type] The 'datacontenttype' must be either 'application/cloudevents+json' or 'application/json'. The given is datacontenttype=${event.datacontenttype}`,
+      );
+    }
     const transformedData = this.middleware?.cloudevent?.[event.type]?.(event);
     const evt = {
       type: transformedData?.type || event.type,
+      __cloudevent: event,
       ...(transformedData?.data || event.data || {}),
     } as EventFromLogic<TLogic>;
+    const eventVersion: any = (event as any).statemachineversion;
+    if (eventVersion && this.stateMachineVersion !== eventVersion) {
+      throw new Error(
+        `[cloudevent][Invalid state machine version] The event expects state machine version=${eventVersion}, however, the state machine is version=${this.stateMachineVersion}`,
+      );
+    }
     return this.send(evt);
   }
 
@@ -134,18 +168,6 @@ export function createCloudOrchestrationActor<TLogic extends AnyActorLogic>(
 }
 
 /**
- * An XState action that assigns event data to the context, excluding the 'type' property of the event.
- * This action is useful in scenarios where the context needs to be updated with new data from an event,
- * but the event's type should not overwrite any existing context properties.
- *
- * @returns A context object updated with the data from the event, minus the event's type.
- */
-export const assignEventDataToContext = assign(({ event, context }) => {
-  const { type, ...restOfEvent } = event;
-  return { ...context, ...restOfEvent };
-});
-
-/**
  * Orchestrates cloud events by processing each event, managing the state with persistent actors,
  * and emitting new cloud events based on the defined orchestration logic.
  *
@@ -160,7 +182,7 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
   events: CloudEvent<Record<string, any>>[],
   inits: { subject: string; context: ContextFrom<TLogic> }[] = [],
 ) {
-  events = events.filter((e) => Boolean(e.subject));
+  events = events.filter((e) => Boolean(e?.subject));
   const eventSubjects = Array.from(new Set(events.map((e) => e.subject)));
   const initSubjects = Array.from(new Set(inits.map((e) => e.subject)));
   const uniqueSubjects = Array.from(
@@ -179,6 +201,7 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
   }
 
   let eventsToEmit: CloudEvent<Record<string, any>>[] = [];
+  const processContextMap: Record<string, ContextFrom<TLogic>> = {};
   const subjectToEvents = events.reduce(
     (acc, cur) => ({
       ...acc,
@@ -187,33 +210,52 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
     {} as Record<string, CloudEvent<Record<string, any>>[]>,
   );
 
-  for (const initEvent of inits || []) {
-    await withPersistableActor<TLogic, CloudOrchestrationActor<TLogic>>(
-      {
-        id: initEvent.subject,
-        storageManager: param.storageManager,
-        actorCreator: (id, snapshot) => {
-          if (snapshot)
-            throw new Error(
-              `The subject=${id} already exists so it cannot be initiated`,
-            );
-          return createCloudOrchestrationActor(param.statemachine, {
-            id,
-            snapshot,
-            input: initEvent.context,
-            middleware: {
-              orchestration: param.onOrchestrationState,
-              cloudevent: param.onCloudEvent,
-            },
-          });
+  await Promise.all(
+    (inits || []).map((initEvent) =>
+      withPersistableActor<TLogic, CloudOrchestrationActor<TLogic>>(
+        {
+          id: initEvent.subject,
+          storageManager: param.storageManager,
+          actorCreator: (id, snapshot) => {
+            if (snapshot)
+              throw new Error(
+                `The subject=${id} already exists so it cannot be initiated`,
+              );
+            return createCloudOrchestrationActor(param.statemachine.logic, {
+              version: param.statemachine.version,
+              id,
+              snapshot,
+              input: initEvent.context,
+              middleware: {
+                orchestration: param.onOrchestrationState,
+                cloudevent: param.onCloudEvent,
+              },
+            });
+          },
         },
-      },
-      async (actor) => {
-        actor.start();
-        eventsToEmit = [...eventsToEmit, ...actor.eventsToEmit];
-      },
-    );
-  }
+        async (actor) => {
+          actor.start();
+          eventsToEmit = [...eventsToEmit, ...actor.eventsToEmit];
+          try {
+            const snapshot = actor.getSnapshot();
+            param?.onSnapshot?.(initEvent.subject, snapshot);
+            processContextMap[initEvent.subject] = (snapshot as any)?.context;
+          } catch (error) {
+            console.error(
+              JSON.stringify(
+                {
+                  processId: initEvent.subject,
+                  error: (error as Error)?.message,
+                },
+                null,
+                2,
+              ),
+            );
+          }
+        },
+      ),
+    ),
+  );
 
   for (const id of Object.keys(subjectToEvents)) {
     await withPersistableActor<TLogic, CloudOrchestrationActor<TLogic>>(
@@ -224,7 +266,8 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
           if (!snapshot) {
             throw new Error(`The subject=${id} not already initiated.`);
           }
-          return createCloudOrchestrationActor(param.statemachine, {
+          return createCloudOrchestrationActor(param.statemachine.logic, {
+            version: param.statemachine.version,
             id,
             snapshot,
             middleware: {
@@ -238,8 +281,27 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
         actor.start();
         subjectToEvents[id].forEach((evt) => actor.cloudevent(evt));
         eventsToEmit = [...eventsToEmit, ...actor.eventsToEmit];
+        try {
+          const snapshot = actor.getSnapshot();
+          param?.onSnapshot?.(id, snapshot);
+          processContextMap[id] = (snapshot as any)?.context;
+        } catch (error) {
+          console.error(
+            JSON.stringify(
+              {
+                processId: id,
+                error: (error as Error)?.message,
+              },
+              null,
+              2,
+            ),
+          );
+        }
       },
     );
   }
-  return eventsToEmit;
+  return {
+    eventsToEmit,
+    processIdContext: processContextMap,
+  };
 }
