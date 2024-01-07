@@ -20,6 +20,8 @@ yarn add persistable-xstate-actor aws-sdk unified-serverless-storage cloudevents
 
 ## Core Features
 
+> **Considerations:** It's crucial to be aware that the Actors within this package are primarily crafted for scenarios where asynchronous Promise-based function calls are not the primary use case. Specifically tailored for serverless functions like AWS Lambda, these Actors are designed to receive events, compute the next state, and emit those states to an event bus. Consequently, using these Actors with the `invoke` functionality in XState state machines may lead to unexpected behavior. Please exercise caution and consider this limitation when integrating these Actors into your workflows.
+
 ### Persistable Actor
 
 `PersistableActor` is the cornerstone of this library, equipped to endow xstate actors with persistence and locking features.
@@ -42,23 +44,19 @@ yarn add persistable-xstate-actor aws-sdk unified-serverless-storage cloudevents
 
 `withPersistableActor` is a utility function designed to streamline the management of `PersistableActor`, encapsulating setup, operation, and teardown phases.
 
+This is ideal for short-lived operations or tasks requiring an actor, it ensures efficient management of the actor's lifecycle, minimizing the need for repetitive code.
+
 #### Key Advantages
 
 - **Simplified Actor Lifecycle Management**: Automates the initialization and closure of `PersistableActor`, reducing complexity for developers.
 - **Convenience with Callbacks**: Allows passing of a callback function to operate on the actor, enhancing ease of use.
 - **Robust Error Management**: Incorporates error handling to address potential issues during the actor's operation.
 
-#### Practical Application
-
-Ideal for short-lived operations or tasks requiring an actor, it ensures efficient management of the actor's lifecycle, minimizing the need for repetitive code.
-
-#### Considerations
-
-- The state machine should not contain any asynchronous invocations.
-
 ## How to Use
 
-### Persisting an Actor
+### PersistableActor
+
+The PersistableActor is a powerful wrapper for the xState v5 Actor class, providing seamless integration with a state storage manager. This wrapper enables an actor to store its state in a storage backend facilitated by the unified-serverless-storage package.
 
 ```typescript
 import { createActor } from 'xstate';
@@ -67,15 +65,18 @@ import {
   LocalFileStorageManager,
   LockableStorageManager,
 } from 'unified-serverless-storage';
+import { Core } from 'persistable-xstate-actor';
 
-const actor = new PersistedActor({
-  acquireLockMaxTimeout: 1000,
-  locking,
-  id: persistanceId,
+const actor = new Core.PersistableActor({
+  acquireLockMaxTimeout: 1000, // Maximum time to wait before acquiring a lock throws an error.
+  locking: 'write', // The type of locking mechanism.
+  id: 'some-unique-id', // A unique identifier for the process, serving as the key for state persistence.
   storageManager: new LockableStorageManager({
     storageManager: manager,
     lockingManager: lockingManager,
-  }),
+  }), // The storage manager responsible for handling the storage backend.
+
+  // The actorCreator function receives the persistence id and snapshot from the backend, instantiates an Actor, and returns it.
   actorCreator: (id, snapshot) =>
     createActor(someXStateMachine, {
       id,
@@ -86,24 +87,127 @@ const actor = new PersistedActor({
     }),
 });
 
-// Interaction with the actor
+// Initialize the actor from the snapshot
 await actor.init();
-// ... actor operations ...
+
+// Interact with the actor
+actor.start();
+actor.send({ type: "SOME_EVENT" });
+// ... perform other actor operations ...
+
+// Save the actor state
 await actor.save();
+// Release allocated resources
 await actor.close();
 ```
 
-### Simplified Actor Management with withPersistedActor
+#### Simplified Actor Management with withPersistedActor
+
+This approach takes care of the resources and the loading of the actor from the snapshot and allows to interact with the actor
 
 ```javascript
-await withPersistedActor(params, async (actor) => {
-  // Operations using the actor
-});
+import { Core } from 'persistable-xstate-actor'
+await Core.withPersistableActor(
+  params, // The PersistableActor params, the exact same ones.
+  async (actor) => {
+    actor.start();
+    actor.send({type: "SOME_EVENT"})
+  }
+);
 ```
 
 ### CloudOrchestrationActor
 
-This is a an extention of the xState v5 Actor class which is design to be run in a short lived cloud environment and act as a orchestration/ rules state machien executor.
+The `CloudOrchestrationActor` extends the capabilities of the xState v5 Actor class, specifically designed for execution in short-lived cloud environments, serving as an orchestrator and rules-based state machine executor.
+
+Upon instantiation with a snapshot, this actor seamlessly rehydrates its state, picking up where it left off. Tailored as an orchestrator for serverless, event-driven services, it introduces a `.cloudevent()` function to handle CloudEvent-compliant JSON objects.
+
+In its constructor, the actor expects a unique `id` representing the orchestration process, a `version` indicating the state machine definition version (with future support for handling different versions), and a middleware object. This `middleware` object includes `cloudevent`, defining a map of transformation functions before execution by the actor, and an `orchestration` property, which maps states in the state machine to the corresponding CloudEvent to emit when reached.
+
+The lifecycle of a CloudEvent inside this actor look like following:
+
+```mermaid
+sequenceDiagram
+    participant I as Input into `.cloudevent()`
+    participant M as 'cloudevent' middleware 
+    participant E as The event is executed
+    participant S as A state is reached
+    participant A as actor
+    I ->> M: checks for a transformation 
+    M-->>E: and executs it otherwise passes it on
+    E->>S: The xstate actions defined<br/>in the state machine<br/> are executed
+    S->>A: checks of a coresponding<br/>middleware in the `orchestrations`<br/>middleware
+    A-->>S: If the middleware exists<br/> then it is executed and<br/> the event to be emitted<br/>is registered which can be <br/>obtained by `actor.eventsToEmit`<br/>property
+```
+
+The code below shows a usage example for the state machine diagram presented in the image:
+
+![image](/readme/images/statemachine.png)
+
+```typescript
+import {
+  DynamoLockingManager,
+  LocalFileStorageManager,
+  LockableStorageManager,
+} from 'unified-serverless-storage';
+import { Core, Utils } from 'persistable-xstate-actor';
+
+const actor = new Core.CloudOrchestrationActor(
+  someXStateMachine, {
+    id: 'some-id',
+    version: '0.0.1',
+    middleware: {
+      cloudevent: {
+        'books.evt.fetch.success': (evt: CloudEvent<Record<string, any>>) => {
+          // Must return a {type: string and data: Record<string, any>}
+          return {
+            type: evt.type,
+            data: evt.data || {}
+          }
+        }
+      }
+      orchestration: {
+        FetchData: (id, state, { context }) =>
+          // Must return a cloudevent
+          createCloudEvent({
+            type: 'books.com.fetch',
+            subject: id,
+            source: '/test/summary/orchestrator',
+            data: {
+              bookId: context.bookId,
+            },
+          }),
+        // The key is #Top State.#Inner State.Inner State to target
+        '#Regulate.#Grounded.Check': (id, state, { context }) =>
+          createCloudEvent({
+            type: 'regulations.com.summaryGrounded',
+            subject: id,
+            source: '/test/summary/orchestrator',
+            data: {
+              content: context.bookData,
+              summary: context.summary,
+            },
+          }),
+      }
+    }
+  }
+)
+
+actor.start()
+actor.cloudevent(
+  Utils.createCloudEvent({
+    subject: processId,
+    type: 'books.evt.fetch.success',
+    source: '/fleet/books',
+    data: {
+      bookData: ['saad', 'ahmad'],
+    },
+  })
+)
+const nextOrchEvtToEmit = actor.eventsToEmit
+// Emit these events to the Event Bus
+```
+
 
 #### Further Reading
 
