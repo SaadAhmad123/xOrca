@@ -1,3 +1,5 @@
+> See Github repository for this project [here](https://github.com/SaadAhmad123/persistable-xstate-actor)
+
 # A Library for persistable xstate v5 actors
 
 The `persistable-xstate-actor` library is a sophisticated and scalable tool for managing state in distributed and serverless applications. It introduces two pivotal constructs for xState actor state management: `PersistableActor` and `withPersistableActor`. These constructs are crafted to integrate flawlessly with the xstate library, offering enhanced persistence and locking capabilities to promote consistency and resilience in stateful applications and orchestrations.
@@ -171,7 +173,7 @@ const actor = new Core.CloudOrchestrationActor(
           // Must return a cloudevent
           createCloudEvent({
             type: 'books.com.fetch',
-            subject: id,
+            subject: id,    // The subject must be the process/orchestration id
             source: '/test/summary/orchestrator',
             data: {
               bookId: context.bookId,
@@ -208,6 +210,65 @@ const nextOrchEvtToEmit = actor.eventsToEmit
 // Emit these events to the Event Bus
 ```
 
+Or, the alternative is to use `createCloudOrchestrationActor`
+
+```typescript
+import { Core, Utils } from 'persistable-xstate-actor';
+
+const actor = Core.createCloudOrchestrationActor(someXStateMachine, {
+  // ...same params as above
+})
+```
+
+You can use `PersistableActor` or `withPersistableActor` to wrap this actor to allow for persistance. 
+
+### orchestrateCloudEvents
+
+The `orchestrateCloudEvents` function serves to streamline the utilization of the `CloudOrchestrationActor`. This function encapsulates the Actor in a persistable format, facilitating a smoother process for initiating new workflows and consuming CloudEvents within existing processes. Additionally, it autonomously handles the segregation and management of events originating from different orchestration instances. Ultimately, this function produces the CloudEvents that are intended to be emitted for the subsequent cycle.
+
+```typescript
+import { Core, Utils } from 'persistable-xstate-actor';
+import {CloudEvent} from 'cloudevents'
+const eventsFromOrchestrations<CloudEvent[]> = []
+const eventForInitOrchestrations<{
+  subject: 'some-unique-id',
+  context: {
+    //...some data for initial context
+  }
+}[]> = []
+
+const {
+  eventsToEmit, // Events to emit next
+  processIdContext // The map of contexts of state machines for each process id (processId => context)
+} = await Core.orchestrateCloudEvents(
+  {
+    statemachine: {
+      version: '0.0.1',
+      logic: someXStateMachine, // output of createMachine(...) from xstate
+    }
+    storageManager: new LockableStorageManager({
+      storageManager: manager,
+      lockingManager: lockingManager,
+    }),
+    locking: 'write', // This is optional
+    onCloudEvent: {
+      // Same as CloudOrchestrationActor.middleware.cloudevent. See above in the constructor
+    },
+    onOrchestrationState: {
+      // Same as CloudOrchestrationActor.middleware.orchestration. See above in the constructor
+    }
+    onSnapshot: (
+      processId,
+      snapshot
+    ) => {
+      console.log({processId, snapshot})
+    } // This is optional
+  },
+  eventsFromOrchestrations,
+  eventForInitOrchestrations,
+)
+
+```
 
 #### Further Reading
 

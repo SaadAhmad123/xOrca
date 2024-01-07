@@ -161,7 +161,7 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
    * - "read": Locks are acquired during read operations.
    * - "read-write": Locks are acquired during both read and write operations.
    */
-  locking?: 'read' | 'read-write';
+  locking?: 'write' | 'read-write';
 
   /**
    * Function called on snapshot
