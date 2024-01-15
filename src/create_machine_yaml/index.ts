@@ -35,11 +35,11 @@ export function createMachineYaml<TContext extends Record<string, any>>(
       types: {} as {
         context: TContext;
       },
+      ...(jsonObj as any),
       context: ({ input }) => ({
         ...((jsonObj as any)?.context || {}),
         ...(input || {}),
       }),
-      ...(jsonObj as any),
     },
     {
       actions: {
