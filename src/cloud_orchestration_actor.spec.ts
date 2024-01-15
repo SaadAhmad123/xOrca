@@ -1,10 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {
-  makeSubject,
-  orchestrateCloudEvents,
-} from './cloud_orchestration_actor';
+import { orchestrateCloudEvents } from './orchestrateCloudEvents';
 import { SummaryStateMachineContext } from './cloud_orchestration_actor.spec.data';
 import { createCloudEvent } from './utils';
 import {
@@ -18,7 +15,7 @@ import {
 } from './types';
 import { CloudEvent } from 'cloudevents';
 import { createMachineYaml } from './create_machine_yaml';
-import { readFile } from './utils';
+import { readFile, makeSubject } from './utils';
 
 const orchestrationMiddleware: Record<string, OnOrchestrationState> = {
   FetchData: (id, state, { context }) => ({
@@ -225,7 +222,7 @@ describe('Cloud Orchestration Actor Test', () => {
         }),
       ],
     );
-    console.log(JSON.stringify(eventsToEmit, null, 4))
+    console.log(JSON.stringify(eventsToEmit, null, 4));
     expect(eventsToEmit.length).toBe(2);
     const eventToEmitTypes = eventsToEmit.map((item) => item.type);
     expect(eventToEmitTypes.includes('regulations.com.summaryGrounded')).toBe(

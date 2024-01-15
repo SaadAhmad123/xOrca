@@ -1,4 +1,5 @@
 import {
+  ContextFrom,
   Actor,
   ActorOptions,
   AnyActorLogic,
@@ -186,3 +187,9 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
    */
   onSnapshot?: (processId: string, snapshot: SnapshotFrom<TLogic>) => void;
 }
+
+export type InitialOrchestrationEvent<TLogic extends AnyActorLogic> = {
+  processId: string;
+  context: ContextFrom<TLogic>;
+  version: Version;
+};

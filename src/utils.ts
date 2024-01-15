@@ -196,3 +196,55 @@ export function readFile(_path: string, __default: string = ''): string {
     return __default;
   }
 }
+
+/**
+ * Creates a subject string for a given process, name, and version.
+ * The subject is encoded in base64 format.
+ *
+ * @param processId - The ID of the process.
+ * @param name - The name associated with the process.
+ * @param version - The version of the process.
+ * @returns A base64-encoded string representing the subject.
+ * @example
+ * const subject = makeSubject("12345", "ExampleProcess", "1.0.0");
+ * // Result: <A base64 string>
+ */
+export const makeSubject = (
+  processId: string,
+  name: string,
+  version: Version,
+) => {
+  const subjectObj = { processId, name, version };
+  return Buffer.from(JSON.stringify(subjectObj)).toString('base64');
+};
+
+/**
+ * Parses a subject string and returns an object with processId, name, and version.
+ *
+ * @param subject - The base64-encoded subject string.
+ * @returns An object containing processId, name, and version.
+ * @throws Will throw an error if the subject is invalid or missing required fields.
+ * @example
+ * const subjectString = <A base64 string>;
+ * const parsedSubject = parseSubject(subjectString);
+ * // Result: { processId: "12345", name: "ExampleProcess", version: "1.0.0" }
+ */
+export const parseSubject = (subject: string) => {
+  try {
+    const obj = JSON.parse(Buffer.from(subject, 'base64').toString('utf-8'));
+    if (!obj.processId) throw new Error('No processId is found');
+    if (!obj.name) throw new Error('No name is found');
+    if (!obj.version) throw new Error('No version is found');
+    return obj as {
+      processId: string;
+      name: string;
+      version: Version;
+    };
+  } catch (err) {
+    throw new Error(
+      `[orchestrateCloudEvents][parseSubject] Invalid subject=${subject}. Error -> ${
+        (err as Error).message
+      }`,
+    );
+  }
+};

@@ -1,10 +1,8 @@
 import PersistableActor, { withPersistableActor } from './persistable_actor';
 import CloudOrchestrationActor, {
-  orchestrateCloudEvents,
   createCloudOrchestrationActor,
-  makeSubject,
-  parseSubject
 } from './cloud_orchestration_actor';
+import { orchestrateCloudEvents } from './orchestrateCloudEvents';
 import {
   PersistableActorInput,
   OnOrchestrationEvent,
@@ -17,6 +15,8 @@ import {
   createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,
+  makeSubject,
+  parseSubject,
 } from './utils';
 import { CreateMachineYamlError } from './create_machine_yaml/errors';
 import {
