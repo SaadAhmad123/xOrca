@@ -10,6 +10,8 @@ import {
 import { CloudEvent } from 'cloudevents';
 import { ILockableStorageManager } from 'unified-serverless-storage';
 
+export type Version = `${number}.${number}.${number}`;
+
 /**
  * Defines the structure for the input parameters required by the withPersistance function.
  * This interface is crucial for setting up a persistent actor in an XState context,
@@ -64,25 +66,28 @@ export type PersistableActorInput<
  * @param event - The CloudEvent to be processed.
  * @returns An object containing the type of the event, and optionally, additional data.
  */
-export type CloudEventMiddleware = (event: CloudEvent<Record<string, any>>) => {
+export type OnOrchestrationEvent = (event: CloudEvent<Record<string, any>>) => {
   type: string;
   data?: Record<string, any>;
 };
 
 /**
  * Type definition for middleware that handles orchestration logic based on state and snapshot data.
- * This function takes the current state and a machine snapshot, and returns a CloudEvent representing
+ * This function takes the current state and a machine snapshot, and returns data to create a CloudEvent representing
  * the necessary actions or information for cloud-based orchestration.
  *
  * @param state - The current state of the machine.
  * @param snapshot - The snapshot of the machine, providing a detailed view of its current state.
- * @returns A CloudEvent tailored for cloud orchestration based on the given state and snapshot.
+ * @returns An object with type and data for the CloudEvent
  */
-export type CloudOrchestrationStateMiddleware = (
+export type OnOrchestrationState = (
   id: string,
   state: string,
   snapshot: AnyMachineSnapshot,
-) => CloudEvent<Record<string, any>>;
+) => {
+  type: string;
+  data?: Record<string, any>;
+};
 
 /**
  * Interface defining the structure of middleware options for a cloud orchestrator.
@@ -90,8 +95,8 @@ export type CloudOrchestrationStateMiddleware = (
  * mapping event types to their respective middleware functions for cloud event processing and orchestration.
  */
 export type CloudOrchestratorMiddlewares = {
-  cloudevent?: Record<string, CloudEventMiddleware>;
-  orchestration?: Record<string, CloudOrchestrationStateMiddleware>;
+  onCloudEvent?: Record<string, OnOrchestrationEvent>;
+  onState?: Record<string, OnOrchestrationState>;
 };
 
 /**
@@ -116,12 +121,17 @@ export type CloudOrchestrationActorOptions<TLogic extends AnyActorLogic> =
     /**
      * State machine version.
      */
-    version: `${number}.${number}.${number}`;
+    version: Version;
 
     /**
      * Id of the state machine
      */
     id: string;
+
+    /**
+     * State machine name
+     */
+    name: string;
   };
 
 /**
@@ -130,12 +140,17 @@ export type CloudOrchestrationActorOptions<TLogic extends AnyActorLogic> =
  */
 export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
   /**
+   * Name of the orchestration state machine
+   */
+  name: string;
+
+  /**
    * The state machine logic that governs the behavior of the orchestration.
    */
   statemachine: {
-    version: `${number}.${number}.${number}`;
+    version: Version;
     logic: TLogic;
-  };
+  }[];
 
   /**
    * The storage manager responsible for persisting the state of the orchestration.
@@ -147,14 +162,14 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
    * A record mapping cloud event types to middleware functions. These functions are called when a cloud event is received,
    * allowing custom processing based on the event type.
    */
-  onCloudEvent?: Record<string, CloudEventMiddleware>;
+  onCloudEvent?: Record<string, OnOrchestrationEvent>;
 
   /**
    * A record mapping state names to orchestration middleware functions. These functions are called when a specific state is reached.
    * States are represented by their names, with nested states separated by dots (e.g., 'state1.state2').
    * The middleware function should return an orchestration command that will be dispatched.
    */
-  onOrchestrationState?: Record<string, CloudOrchestrationStateMiddleware>;
+  onOrchestrationState?: Record<string, OnOrchestrationState>;
 
   /**
    * Specifies the locking mode for the storage manager's operations.

@@ -2,11 +2,13 @@ import PersistableActor, { withPersistableActor } from './persistable_actor';
 import CloudOrchestrationActor, {
   orchestrateCloudEvents,
   createCloudOrchestrationActor,
+  makeSubject,
+  parseSubject
 } from './cloud_orchestration_actor';
 import {
   PersistableActorInput,
-  CloudEventMiddleware,
-  CloudOrchestrationStateMiddleware,
+  OnOrchestrationEvent,
+  OnOrchestrationState,
   CloudOrchestratorMiddlewares,
   CloudOrchestrationActorOptions,
   IOrchestrateCloudEvents,
@@ -41,16 +43,18 @@ const Utils = {
   assignEventDataToContext,
   assignLogsToContext,
   CreateStateMachineJSONSchemaValidator,
+  makeCloudEventSubject: makeSubject,
+  parseCloudEventSubject: parseSubject,
 };
 
 export {
   Core,
   Utils,
-  PersistableActorInput as PersistableActorInputType,
-  CloudEventMiddleware as CloudEventMiddlewareType,
-  CloudOrchestrationStateMiddleware as CloudOrchestrationStateMiddlewareType,
-  CloudOrchestratorMiddlewares as CloudOrchestratorMiddlewaresType,
-  CloudOrchestrationActorOptions as CloudOrchestrationActorOptionsType,
+  PersistableActorInput,
+  OnOrchestrationEvent,
+  OnOrchestrationState,
+  CloudOrchestratorMiddlewares,
+  CloudOrchestrationActorOptions,
   IOrchestrateCloudEvents,
   GenericEventObject,
   GenericActionFunction,

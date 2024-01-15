@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CloudEvent, CloudEventV1 } from 'cloudevents';
 import { assign } from 'xstate';
+import { Version } from './types';
 
 /**
  * Represents a path and its corresponding value in an object.
@@ -58,7 +59,7 @@ export interface ICreateCloudEvent {
   source: string;
   type: string;
   data: Record<string, any>;
-  statemachineversion?: `${number}.${number}.${number}`;
+  statemachineversion?: Version;
 }
 
 /**
@@ -87,12 +88,6 @@ export function createCloudEvent(params: ICreateCloudEvent) {
     subject: params.subject,
     type: params.type,
   };
-  if (params.statemachineversion) {
-    data = {
-      ...data,
-      statemachineversion: params.statemachineversion,
-    };
-  }
   return new CloudEvent<Record<string, any>>(data, true);
 }
 

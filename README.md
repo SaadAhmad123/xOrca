@@ -94,7 +94,7 @@ await actor.init();
 
 // Interact with the actor
 actor.start();
-actor.send({ type: "SOME_EVENT" });
+actor.send({ type: 'SOME_EVENT' });
 // ... perform other actor operations ...
 
 // Save the actor state
@@ -108,13 +108,13 @@ await actor.close();
 This approach takes care of the resources and the loading of the actor from the snapshot and allows to interact with the actor
 
 ```javascript
-import { Core } from 'persistable-xstate-actor'
+import { Core } from 'persistable-xstate-actor';
 await Core.withPersistableActor(
   params, // The PersistableActor params, the exact same ones.
   async (actor) => {
     actor.start();
-    actor.send({type: "SOME_EVENT"})
-  }
+    actor.send({ type: 'SOME_EVENT' });
+  },
 );
 ```
 
@@ -131,11 +131,11 @@ The lifecycle of a CloudEvent inside this actor look like following:
 ```mermaid
 sequenceDiagram
     participant I as Input into `.cloudevent()`
-    participant M as 'cloudevent' middleware 
+    participant M as 'cloudevent' middleware
     participant E as The event is executed
     participant S as A state is reached
     participant A as actor
-    I ->> M: checks for a transformation 
+    I ->> M: checks for a transformation
     M-->>E: and executs it otherwise passes it on
     E->>S: The xstate actions defined<br/>in the state machine<br/> are executed
     S->>A: checks of a coresponding<br/>middleware in the `orchestrations`<br/>middleware
@@ -217,10 +217,10 @@ import { Core, Utils } from 'persistable-xstate-actor';
 
 const actor = Core.createCloudOrchestrationActor(someXStateMachine, {
   // ...same params as above
-})
+});
 ```
 
-You can use `PersistableActor` or `withPersistableActor` to wrap this actor to allow for persistance. 
+You can use `PersistableActor` or `withPersistableActor` to wrap this actor to allow for persistance.
 
 ### orchestrateCloudEvents
 
