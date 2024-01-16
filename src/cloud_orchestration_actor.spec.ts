@@ -128,7 +128,7 @@ describe('Cloud Orchestration Actor Test', () => {
     );
     expect(eventsToEmit.length).toBe(1);
     expect(eventsToEmit[0].type).toBe('books.com.fetch');
-    expect(eventsToEmit[0]?.data?.bookId).toBe("saad.pdf")
+    expect(eventsToEmit[0]?.data?.bookId).toBe('saad.pdf');
   });
 
   it('should emit a summary event upon successful book data fetch', async () => {

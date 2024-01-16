@@ -90,7 +90,15 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
     );
   }
 
-  const getStateMachine = (version: Version) => {
+  const getStateMachine = (version?: Version) => {
+    if (!version) {
+      if (!param.statemachine.length) {
+        throw new Error(
+          `[orchestrateCloudEvents][getStateMachine] No state machines(name=${param.name}) versions provided`,
+        );
+      }
+      return param.statemachine[param.statemachine.length - 1];
+    }
     const machines = param.statemachine.filter(
       (item) => item.version === version,
     );
@@ -171,7 +179,6 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
   );
 
   for (const id of Object.keys(subjectToEvents)) {
-    console.log({ 'subjectToEvents[id]': subjectToEvents[id] });
     try {
       const { name, version } = parseSubject(id);
       if (name !== param.name) {

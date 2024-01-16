@@ -191,5 +191,5 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
 export type InitialOrchestrationEvent<TLogic extends AnyActorLogic> = {
   processId: string;
   context: ContextFrom<TLogic>;
-  version: Version;
+  version?: Version;
 };
