@@ -1,6 +1,6 @@
 {
   "name": "persistable-xstate-actor",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "This is a scalable library for managing state in serverless applications, offering persistence and locking for xState actors.",
   "main": "dist/index.js",
   "license": "MIT",
@@ -23,7 +23,7 @@
     "dev": "ts-node ./src/index.ts",
     "test": "jest --passWithNoTests",
     "format": "npx prettier --write .",
-    "build:doc": "typedoc src/** --plugin typedoc-material-theme --themeColor '#cb9820'"
+    "build:doc": "typedoc src/index.ts --plugin @mxssfd/typedoc-theme --theme my-theme"
   },
   "engines": {
     "node": ">=16.10.0"
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@jest/globals": "^29.6.2",
+    "@mxssfd/typedoc-theme": "^1.1.3",
     "@types/jest": "^29.5.3",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.8.7",
@@ -47,7 +48,6 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "typedoc": "^0.25.7",
-    "typedoc-material-theme": "^1.0.2",
     "typescript": "^5.2.2"
   }
 }
