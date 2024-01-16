@@ -68,10 +68,10 @@ jobs:
       - name: Build documentation
         run: yarn build:doc
 
-      - name: "Upload Pages artifact"
-        uses: "actions/upload-pages-artifact@v2"
+      - name: 'Upload Pages artifact'
+        uses: 'actions/upload-pages-artifact@v2'
         with:
-          path: "docs/"
-      
-      - name: "Deploy documentation to GitHub Pages"
-        uses: "actions/deploy-pages@v2"
+          path: 'docs/'
+
+      - name: 'Deploy documentation to GitHub Pages'
+        uses: 'actions/deploy-pages@v2'

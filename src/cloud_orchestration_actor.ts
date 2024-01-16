@@ -49,9 +49,9 @@ export default class CloudOrchestrationActor<
       inspect: (evt: InspectionEvent) => {
         if (evt.type === '@xstate.snapshot') {
           const _evt: InspectedSnapshotEvent = evt;
-          const evtSnapShotSign = Buffer
-            .from(JSON.stringify(_evt.snapshot || {}))
-            .toString('base64');
+          const evtSnapShotSign = Buffer.from(
+            JSON.stringify(_evt.snapshot || {}),
+          ).toString('base64');
           const snapshotPaths = getAllPaths(
             (_evt?.snapshot as AnyMachineSnapshot)?.value || {},
           ).map(pathValueToString);

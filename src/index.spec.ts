@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Core } from '.';
+import { withPersistableActor, PersistableActor } from '.';
 import trafficStateMachine from './index.spec.data';
 import { PersistableActorInput } from './types';
 import { Actor, createActor } from 'xstate';
@@ -91,7 +91,7 @@ describe('Testing with persistance', () => {
   }, 10000);
 
   it('[No Locking] It should load no snapshot when no state available and then persist the state after an update', async () => {
-    await Core.withPersistableActor(
+    await withPersistableActor(
       getPersistedActorParams(persistanceId),
       async (actor) => {
         actor.start();
@@ -106,7 +106,7 @@ describe('Testing with persistance', () => {
   });
 
   it('[No Locking] It should load from the old persisted state and then act on it', async () => {
-    await Core.withPersistableActor(
+    await withPersistableActor(
       getPersistedActorParams(persistanceId),
       async (actor) => {
         actor.start();
@@ -128,7 +128,7 @@ describe('Testing with persistance', () => {
 
   it('[With Locking] It should load no snapshot when no state available and then persist the state after an update', async () => {
     const pid = `wp-${persistanceId}`;
-    const persistedActor = new Core.PersistableActor(
+    const persistedActor = new PersistableActor(
       getPersistedActorParams(pid, 'read-write'),
     );
 
@@ -141,7 +141,7 @@ describe('Testing with persistance', () => {
     );
     await persistedActor.close();
 
-    await Core.withPersistableActor(
+    await withPersistableActor(
       getPersistedActorParams(`wp-${persistanceId}`, 'read-write'),
       async (actor) => {
         actor.start();
