@@ -8,4 +8,6 @@ tsconfig.json
 .yarnrc.yml
 .env
 coverage
-
+docs
+readme
+README.md
