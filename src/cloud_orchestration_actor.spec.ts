@@ -43,6 +43,10 @@ const orchestrationMiddleware: Record<string, OnOrchestrationState> = {
       content: context.summary,
     },
   }),
+  Done: (id, state, { context }) => ({
+    type: 'orch.done',
+    data: context,
+  }),
 };
 
 describe('Cloud Orchestration Actor Test', () => {
@@ -166,6 +170,29 @@ describe('Cloud Orchestration Actor Test', () => {
     expect(eventsToEmit[0].type).toBe('gpt.com.summary');
   });
 
+  it('should emit a no event on invalid events', async () => {
+    const { eventsToEmit, errors } = await orchestrateCloudEvents(
+      orchestrationParams,
+      [
+        createCloudEvent({
+          type: 'books.evt.fetch.success',
+          subject: makeSubject(
+            processId,
+            stateMachineName,
+            stateMachineVersion,
+          ),
+          source: '/books/fetch/',
+          data: {
+            bookId: 'saad.pdf',
+            bookData: ['saad', 'ahmad'],
+          },
+        }),
+      ],
+    );
+    expect(eventsToEmit.length).toBe(0);
+    expect(errors.length).toBe(0);
+  });
+
   it('should throw version miss match error and datacontenttype validation error', async () => {
     const { errors } = await orchestrateCloudEvents(orchestrationParams, [
       createCloudEvent({
@@ -223,7 +250,7 @@ describe('Cloud Orchestration Actor Test', () => {
         }),
       ],
     );
-    console.log(JSON.stringify(eventsToEmit, null, 4));
+    //console.log(JSON.stringify(eventsToEmit, null, 4));
     expect(eventsToEmit.length).toBe(2);
     const eventToEmitTypes = eventsToEmit.map((item) => item.type);
     expect(eventToEmitTypes.includes('regulations.com.summaryGrounded')).toBe(
@@ -232,5 +259,82 @@ describe('Cloud Orchestration Actor Test', () => {
     expect(eventToEmitTypes.includes('regulations.com.summaryCompliance')).toBe(
       true,
     );
+  });
+
+  it('should emit a no event on invalid events 2', async () => {
+    const { eventsToEmit, errors } = await orchestrateCloudEvents(
+      orchestrationParams,
+      [
+        createCloudEvent({
+          type: 'books.evt.fetch.success',
+          subject: makeSubject(
+            processId,
+            stateMachineName,
+            stateMachineVersion,
+          ),
+          source: '/books/fetch/',
+          data: {
+            bookId: 'saad.pdf',
+            bookData: ['saad', 'ahmad'],
+          },
+        }),
+      ],
+    );
+    expect(eventsToEmit.length).toBe(0);
+    expect(errors.length).toBe(0);
+  });
+
+  it('should emit a no event on if only one parallel state done', async () => {
+    const { eventsToEmit, errors } = await orchestrateCloudEvents(
+      orchestrationParams,
+      [
+        createCloudEvent({
+          type: 'regulations.evt.summaryGrounded.success',
+          subject: makeSubject(
+            processId,
+            stateMachineName,
+            stateMachineVersion,
+          ),
+          source: '/books/fetch/',
+          data: {
+            grounded: true,
+          },
+        }),
+        createCloudEvent({
+          type: 'regulations.evt.summaryGrounded.success',
+          subject: makeSubject(
+            processId,
+            stateMachineName,
+            stateMachineVersion,
+          ),
+          source: '/books/fetch/',
+          data: {
+            grounded: true,
+          },
+        }),
+      ],
+    );
+    expect(eventsToEmit.length).toBe(0);
+    expect(errors.length).toBe(0);
+  });
+
+  it('should emit a no event on if only one parallel state done', async () => {
+    const { eventsToEmit, errors, processIdContext } =
+      await orchestrateCloudEvents(orchestrationParams, [
+        createCloudEvent({
+          type: 'regulations.evt.summaryCompliance.success',
+          subject: makeSubject(
+            processId,
+            stateMachineName,
+            stateMachineVersion,
+          ),
+          source: '/books/fetch/',
+          data: {
+            compliant: true,
+          },
+        }),
+      ]);
+    expect(eventsToEmit.length).toBe(1);
+    expect(errors.length).toBe(0);
   });
 });

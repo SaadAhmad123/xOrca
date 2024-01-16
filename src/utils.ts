@@ -46,6 +46,12 @@ export function getAllPaths(obj: Record<string, any>): PathValue[] {
   return result;
 }
 
+export const pathValueToString = (item: PathValue): string => {
+  return !(item.path || []).length
+    ? item.value.toString()
+    : `${item.path.map((i) => `#${i}`).join('.')}.${item.value}`;
+};
+
 /**
  * Interface representing the parameters required for creating a CloudEvent.
  *

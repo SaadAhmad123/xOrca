@@ -14,7 +14,7 @@ import {
   IOrchestrateCloudEvents,
   Version,
 } from './types';
-import { getAllPaths } from './utils';
+import { getAllPaths, pathValueToString } from './utils';
 import { withPersistableActor } from './persistable_actor';
 
 /**
@@ -43,20 +43,38 @@ export default class CloudOrchestrationActor<
     public logic: TLogic,
     public options: CloudOrchestrationActorOptions<TLogic>,
   ) {
-    const existingSnapshotCount: number = options?.snapshot
-      ? getAllPaths((options.snapshot as AnyMachineSnapshot).value || {}).length
-      : 0;
-    let initiatedCount: number = 0;
+    let snapshotSignature: string | undefined;
+    let updatedPaths: string[] = [];
+    const ignoreInits: boolean = Boolean(options.snapshot);
     super(logic, {
       ...options,
       inspect: (evt: InspectionEvent) => {
         if (evt.type === '@xstate.snapshot') {
-          if (existingSnapshotCount > initiatedCount) {
-            initiatedCount += 1;
-          } else {
-            const _evt: InspectedSnapshotEvent = evt;
-            this.processSnapshot(_evt.snapshot as AnyMachineSnapshot);
+          const _evt: InspectedSnapshotEvent = evt;
+          const evtSnapShotSign = Buffer.from(
+            JSON.stringify(_evt.snapshot || {}),
+          ).toString('base64');
+          const snapshotPaths = getAllPaths(
+            (_evt?.snapshot as AnyMachineSnapshot)?.value || {},
+          ).map(pathValueToString);
+          if (!(_evt.event.type === 'xstate.init' && ignoreInits)) {
+            if (snapshotSignature !== evtSnapShotSign) {
+              try {
+                this.processSnapshot(
+                  snapshotPaths.filter((item) => !updatedPaths.includes(item)),
+                  _evt.snapshot as AnyMachineSnapshot,
+                );
+              } catch (e) {
+                console.error(
+                  `[CloudOrchestrationActor][OnOrchestrationState] ${
+                    (e as Error).message
+                  }`,
+                );
+              }
+            }
           }
+          snapshotSignature = evtSnapShotSign;
+          updatedPaths = [...snapshotPaths];
         }
         options?.inspect?.(evt);
       },
@@ -73,13 +91,11 @@ export default class CloudOrchestrationActor<
    *
    * @param snapshot - The snapshot of the state machine, providing a complete picture of the current state.
    */
-  private processSnapshot(snapshot: AnyMachineSnapshot) {
-    const orchEvts = getAllPaths(snapshot.value)
-      .map((item) => {
-        return !(item.path || []).length
-          ? item.value
-          : `${item.path.map((i) => `#${i}`).join('.')}.${item.value}`;
-      })
+  private processSnapshot(
+    pathsToUpdate: string[],
+    snapshot: AnyMachineSnapshot,
+  ) {
+    const orchEvts = pathsToUpdate
       .map(
         (item) => this.middleware?.onState?.[item]?.(this._id, item, snapshot),
       )
