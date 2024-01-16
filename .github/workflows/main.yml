@@ -39,6 +39,14 @@ jobs:
         run: yarn test
 
   publish:
+    permissions:
+      id-token: "write"
+      pages: "write"
+
+    environment:
+      name: "github-pages"
+      url: "${{ steps.deployment.outputs.page_url }}"
+      
     runs-on: ubuntu-latest
     needs: test
     # Make sure the branch reference is 'main' as you've specified 'main' above in the on.push.branches section
