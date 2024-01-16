@@ -10,6 +10,8 @@ import {
   CloudOrchestratorMiddlewares,
   CloudOrchestrationActorOptions,
   IOrchestrateCloudEvents,
+  StateMachineWithVersion,
+  Version,
 } from './types';
 import {
   createCloudEvent,
@@ -52,4 +54,6 @@ export {
   GenericActionFunction,
   GenericGuardFunction,
   ICreateMachineYamlOptions,
+  StateMachineWithVersion,
+  Version,
 };

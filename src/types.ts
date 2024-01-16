@@ -11,6 +11,12 @@ import {
 import { CloudEvent } from 'cloudevents';
 import { ILockableStorageManager } from 'unified-serverless-storage';
 
+/**
+ * Represents the version of a state machine in the format '{number}.{number}.{number}'.
+ * @example
+ * // Example state machine version.
+ * type ExampleVersion = '1.0.0';
+ */
 export type Version = `${number}.${number}.${number}`;
 
 /**
@@ -60,12 +66,24 @@ export type PersistableActorInput<
 };
 
 /**
- * Type definition for middleware that processes CloudEvents.
- * This middleware function takes a CloudEvent and returns an object containing the event's type,
+ * Middleware function type for processing CloudEvents.
+ * This function takes a CloudEvent and returns an object containing the event's type,
  * and optionally, additional event-specific data.
  *
  * @param event - The CloudEvent to be processed.
- * @returns An object containing the type of the event, and optionally, additional data.
+ * @returns An object containing the type of the event, and optionally, additional data. The
+ * type ideally must be the topic of the event e.g. cmd.books.fetch, evt.books.fetch.success,
+ * notif.orch.done
+ * @example
+ * ```typescript
+ * // Example middleware function for processing CloudEvents.
+ * const onOrchestrationEvent: OnOrchestrationEvent = (event) => {
+ *   return {
+ *     type: 'cmd.books.fetch',
+ *     data: { bookId: event.data.bookId },
+ *   };
+ * };
+ * ```
  */
 export type OnOrchestrationEvent = (event: CloudEvent<Record<string, any>>) => {
   type: string;
@@ -73,13 +91,26 @@ export type OnOrchestrationEvent = (event: CloudEvent<Record<string, any>>) => {
 };
 
 /**
- * Type definition for middleware that handles orchestration logic based on state and snapshot data.
+ * Middleware function type for handling orchestration logic based on state and snapshot data.
  * This function takes the current state and a machine snapshot, and returns data to create a CloudEvent representing
  * the necessary actions or information for cloud-based orchestration.
  *
+ * @param id - The unique identifier for the orchestration actor.
  * @param state - The current state of the machine.
  * @param snapshot - The snapshot of the machine, providing a detailed view of its current state.
- * @returns An object with type and data for the CloudEvent
+ * @returns An object containing the type of the event, and optionally, additional data. The
+ * type ideally must be the topic of the event e.g. cmd.books.fetch, evt.books.fetch.success,
+ * notif.orch.done
+ * @example
+ * ```typescript
+ * // Example middleware function for handling orchestration based on state and snapshot.
+ * const onOrchestrationState: OnOrchestrationState = (id, state, snapshot) => {
+ *   return {
+ *     type: 'evt.books.fetch.success',
+ *     data: { orchestrationId: id, status: 'completed', snapshot },
+ *   };
+ * };
+ * ```
  */
 export type OnOrchestrationState = (
   id: string,
@@ -91,105 +122,242 @@ export type OnOrchestrationState = (
 };
 
 /**
- * Interface defining the structure of middleware options for a cloud orchestrator.
- * It consists of two optional properties: 'cloudevent' and 'orchestration', which are records
- * mapping event types to their respective middleware functions for cloud event processing and orchestration.
+ * Interface defining middleware options for a Cloud Orchestration Actor, facilitating customization of event processing and orchestration logic.
+ * It includes two optional properties: 'onCloudEvent' and 'onState', each mapping event types to their respective middleware functions.
+ *
+ * @example
+ * ```typescript
+ * // Example middleware options for a cloud orchestrator.
+ * const middlewareOptions: CloudOrchestratorMiddlewares = {
+ *   onCloudEvent: {
+ *     'evt.books.fetch.success': (event) => ({
+ *        type: event.type,
+ *        data: {
+ *          // Transforming CloudEvent data
+ *          content: event.data.content.join(' ')
+ *        }
+ *      }),
+ *   },
+ *   onState: {
+ *     'fetch_book': (id, state, { context }) => ({
+ *        type: 'cmd.books.fetch',
+ *        data: { book_id: "some-book.pdf"}
+ *      }),
+ *     // Nested states
+ *     '#regulation.#grounded.check': (id, state, snapshot) => ({...}),
+ *     '#regulation.#compliance.check': (id, state, snapshot) => ({...}),
+ *   },
+ * };
+ * ```
  */
 export type CloudOrchestratorMiddlewares = {
+  /**
+   * A record mapping event types to middleware functions for processing CloudEvents.
+   * When a CloudEvent occurs (e.g., `Instance<CloudOrchestrationActor>.cloudevent(Instance<CloudEvent>)`),
+   * the registered function is invoked, transforming and returning data. Use this to convert CloudEvent data
+   * for merging or upserting into the orchestrator's context.
+   */
   onCloudEvent?: Record<string, OnOrchestrationEvent>;
+
+  /**
+   * A record mapping event types to middleware functions for handling orchestration based on state and snapshot.
+   * This is used to emit a CloudEvent when a specified state is reached. The onState function is called upon state
+   * attainment, and the returned object constructs a CloudEvent. Access these events using `Instance<CloudOrchestrationActor>.eventsToEmit`.
+   */
   onState?: Record<string, OnOrchestrationState>;
 };
 
 /**
- * Type extending ActorOptions to include specific configurations for a CloudOrchestrationActor.
- * This type adds optional properties for inspection event handling and middleware integration,
- * enhancing the actor's capabilities in a cloud context.
+ * Configuration options tailored for a CloudOrchestrationActor, extending the base ActorOptions with cloud-specific features.
+ * These options provide enhanced capabilities for inspection event handling and middleware integration,
+ * making the actor well-suited for cloud-based scenarios.
  */
 export type CloudOrchestrationActorOptions<TLogic extends AnyActorLogic> =
   ActorOptions<TLogic> & {
     /**
-     * An optional function for handling inspection events. This function can be used for debugging,
-     * monitoring, or custom processing of inspection events, enhancing the observability of the actor.
+     * An optional callback function to handle inspection events. This function is useful for debugging,
+     * monitoring, or applying custom processing to inspection events, thereby improving the actor's observability.
+     * @param evt - The inspection event to be handled.
      */
     inspect?: (evt: InspectionEvent) => void;
+
     /**
-     * An optional object specifying the middleware to be used with the actor.
-     * This middleware allows for customized handling of cloud events and orchestration logic,
-     * enabling complex scenarios in cloud-based applications.
+     * An optional object specifying middleware for use with the actor.
+     * This middleware enables customized handling of cloud events and orchestration logic,
+     * facilitating the implementation of intricate scenarios in cloud-based applications.
      */
     middleware?: CloudOrchestratorMiddlewares;
 
     /**
-     * State machine version.
+     * The version of the state machine responsible for orchestration.
+     * Must be in the format `{number}.{number}.{number}`, set by the developer to denote the state machine version.
      */
     version: Version;
 
     /**
-     * Id of the state machine
+     * Unique identifier for the orchestrator actor, crucial for tracking and managing the state of each orchestration instance.
+     * This ID differentiates between multiple instances and serves as a key component in orchestrating cloud-based processes.
      */
     id: string;
 
     /**
-     * State machine name
+     * The orchestrator's project-wide unique name, such as "SummaryStateMachine".
+     * This name provides a distinctive identifier for the orchestrator within the project context.
      */
     name: string;
   };
 
 /**
+ * Represents a state machine configuration, including its version and logic.
+ *
+ * @template TLogic - The type of logic governing the behavior of the state machine.
+ */
+export type StateMachineWithVersion<TLogic extends AnyActorLogic> = {
+  /**
+   * The version of the state machine logic. Should follow the format '{number}.{number}.{number}'.
+   * @example
+   * // Example state machine version.
+   * version: '1.0.0'
+   */
+  version: Version;
+
+  /**
+   * The state machine logic associated with the specified version.
+   * See xstate [documentation](https://stately.ai/docs/machines#creating-a-state-machine)
+   * @example
+   * // Example state machine logic.
+   * logic: createMachine({})
+   *        // or createMachineYaml() - Refer to persisted-xstate-actor documentation.
+   */
+  logic: TLogic;
+};
+
+/**
  * Interface for orchestrating cloud events using a specified state machine and storage manager.
- * It allows defining custom responses to cloud events and orchestration states, and specifies locking mechanisms for storage operations.
+ * Allows the definition of custom responses to cloud events and orchestration states,
+ * and specifies locking mechanisms for storage operations.
+ *
+ * @template TLogic - The type of logic governing the behavior of the orchestration.
  */
 export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
   /**
-   * Name of the orchestration state machine
+   * The orchestrator's project-wide unique name, providing a distinctive identifier within the project context.
+   * @example
+   * // Example orchestrator name.
+   * name: "SummaryStateMachine"
    */
   name: string;
 
   /**
    * The state machine logic that governs the behavior of the orchestration.
+   * It must be a list of state machine logics with their corresponding versions
+   * @example
+   * // Example state machine configuration.
+   * statemachine: [{
+   *   version: '1.0.0',
+   *   logic: createMachine({}) // See xstate [documentation](https://stately.ai/docs/machines#creating-a-state-machine)
+   * }]
    */
-  statemachine: {
-    version: Version;
-    logic: TLogic;
-  }[];
+  statemachine: StateMachineWithVersion<TLogic>[];
 
   /**
    * The storage manager responsible for persisting the state of the orchestration.
-   * It should implement the ILockableStorageManager interface, enabling reading and writing data with concurrent access control.
+   * Should implement the ILockableStorageManager interface for concurrent access control.
+   * This is governed by the npm package `unified-serverless-storage` [see here](https://www.npmjs.com/package/unified-serverless-storage#usage-example).
+   * @example
+   * // Example storage manager implementation.
+   * storageManager: myLockableStorageManager
    */
   storageManager: ILockableStorageManager;
 
   /**
-   * A record mapping cloud event types to middleware functions. These functions are called when a cloud event is received,
-   * allowing custom processing based on the event type.
+   * A record mapping event types to middleware functions for processing CloudEvents.
+   * Invoked when a CloudEvent occurs, transforming and returning data for merging or upserting into the orchestrator's context.
+   * @example
+   * // Example onCloudEvent configuration.
+   * onCloudEvent?: Record<string, OnOrchestrationEvent> = {
+   *   'evt.books.fetch.success': (event) => ({
+   *     type: event.type,
+   *     data: {
+   *       // Transforming CloudEvent data
+   *       content: event.data.content.join(' ')
+   *     }
+   *   }),
+   * }
    */
   onCloudEvent?: Record<string, OnOrchestrationEvent>;
 
   /**
-   * A record mapping state names to orchestration middleware functions. These functions are called when a specific state is reached.
-   * States are represented by their names, with nested states separated by dots (e.g., 'state1.state2').
-   * The middleware function should return an orchestration command that will be dispatched.
+   * A record mapping event types to middleware functions for handling orchestration based on state and snapshot.
+   * Used to emit a CloudEvent when a specified state is reached. The onState function is called upon state attainment,
+   * and the returned object constructs a CloudEvent. Access these events using `Instance<CloudOrchestrationActor>.eventsToEmit`.
+   * @example
+   * // Example onOrchestrationState configuration.
+   * onOrchestrationState?: Record<string, OnOrchestrationState> = {
+   *   'fetch_book': (id, state, { context }) => ({
+   *     type: 'cmd.books.fetch',
+   *     data: { book_id: "some-book.pdf"}
+   *   }),
+   *   // Nested states
+   *   '#regulation.#grounded.check': (id, state, snapshot)
+   *     => ({...}),
+   *   '#regulation.#compliance.check': (id, state, snapshot) => ({...}),
+   * }
    */
   onOrchestrationState?: Record<string, OnOrchestrationState>;
 
   /**
    * Specifies the locking mode for the storage manager's operations.
-   * - "read": Locks are acquired during read operations.
+   * - "write": Locks are acquired during write operations.
    * - "read-write": Locks are acquired during both read and write operations.
+   * @example
+   * // Example locking mode configuration.
+   * locking?: 'write' | 'read-write';
    */
   locking?: 'write' | 'read-write';
 
   /**
-   * Function called on snapshot
-   * @param processId - the process id of the process
-   * @param snapshot - the snapshot which is emitted
-   * @returns
+   * Function called on snapshot, providing the process ID and the emitted snapshot.
+   * @param processId - The process ID of the orchestration process.
+   * @param snapshot - The emitted snapshot capturing the current state of the orchestration.
+   * @returns void
+   * @example
+   * // Example onSnapshot function.
+   * onSnapshot?: (processId: string, snapshot: SnapshotFrom<TLogic>) => {
+   *   console.log(`Snapshot received for process ${processId}:`, snapshot);
+   * };
    */
   onSnapshot?: (processId: string, snapshot: SnapshotFrom<TLogic>) => void;
 }
 
+/**
+ * Represents the event required to initialize an orchestration.
+ *
+ * @template TLogic - The type of logic governing the behavior of the orchestration.
+ */
 export type InitialOrchestrationEvent<TLogic extends AnyActorLogic> = {
+  /**
+   * The process ID of the orchestration.
+   * @example
+   * // Example process ID.
+   * processId: "abc123"
+   */
   processId: string;
+
+  /**
+   * The initial data seeded to the orchestration context.
+   * @example
+   * // Example initial context data.
+   * context: { bookId: "some-book.pdf", status: "pending" }
+   */
   context: ContextFrom<TLogic>;
+
+  /**
+   * The version for the orchestration. If not provided, the latest version will be used.
+   * The version must be of format '{number}.{number}.{number}'
+   * @example
+   * // Example version specification.
+   * version: '1.0.0'
+   */
   version?: Version;
 };
