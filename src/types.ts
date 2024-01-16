@@ -20,7 +20,7 @@ import { ILockableStorageManager } from 'unified-serverless-storage';
 export type Version = `${number}.${number}.${number}`;
 
 /**
- * Defines the structure for the input parameters required by the withPersistance function.
+ * Defines the structure for the input parameters required by the `withPersistance` function.
  * This interface is crucial for setting up a persistent actor in an XState context,
  * providing necessary details like identification, storage management, and actor creation logic.
  */
@@ -35,9 +35,12 @@ export type PersistableActorInput<
   id: string;
 
   /**
-   * The storage manager responsible for persisting the actor's state.
-   * It should implement the ILockableStorageManager interface, which allows for reading and writing
-   * data to a storage medium, with optional locking mechanisms for concurrent access control.
+   * The storage manager responsible for persisting the state of the orchestration.
+   * Should implement the `ILockableStorageManager` interface for concurrent access control.
+   * This is governed by the npm package `unified-serverless-storage` [see here](https://www.npmjs.com/package/unified-serverless-storage#usage-example).
+   * @example
+   * // Example storage manager implementation.
+   * storageManager: myLockableStorageManager
    */
   storageManager: ILockableStorageManager;
 
@@ -46,6 +49,34 @@ export type PersistableActorInput<
    * @param id - The unique identifier of the actor.
    * @param snapshot - An optional parameter that provides a previously persisted snapshot
    *                   of the actor's state, allowing for state restoration.
+   * @example
+   * ```typescript
+   * actorCreator: (id, snapshot) => {
+   *   if (snapshot)
+   *     throw new Error(
+   *       `The subject=${id} already exists so it cannot be initiated`,
+   *     );
+   *   return createCloudOrchestrationActor(statemachine.logic, {
+   *     version: statemachine.version,
+   *     name: param.name,
+   *     id,
+   *     snapshot,
+   *     input: initEvent.context,
+   *     middleware: {
+   *       onState: param.onOrchestrationState,
+   *       onCloudEvent: param.onCloudEvent,
+   *     },
+   *   });
+   * }
+   * // Or
+   * actorCreator: (id, snapshot) => {
+   *  // From xstate
+   *  return createActor(createMachine({...}), {
+   *    id,
+   *    snapshot,
+   *  })
+   * }
+   * ```
    */
   actorCreator: (id: string, snapshot?: Snapshot<unknown>) => TActor;
 
@@ -64,6 +95,7 @@ export type PersistableActorInput<
    */
   acquireLockMaxTimeout?: number;
 };
+
 
 /**
  * Middleware function type for processing CloudEvents.
