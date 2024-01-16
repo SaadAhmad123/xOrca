@@ -15,7 +15,7 @@ export type GenericGuardFunction<TContext extends Record<string, any>> =
 /**
  * Options for creating a state machine from a YAML string.
  */
-export interface CreateMachineYamlOptions<
+export interface ICreateMachineYamlOptions<
   TContext extends Record<string, any>,
 > {
   /**

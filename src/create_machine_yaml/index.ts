@@ -1,8 +1,8 @@
 import * as jsYaml from 'js-yaml';
 import { assign, createMachine } from 'xstate';
-import { CreateStateMachineJSONSchemaValidator } from './schema';
+import { orchestratorStateMachineSchemaValidator } from './schema';
 import { CreateMachineYamlError } from './errors';
-import { CreateMachineYamlOptions } from './types';
+import { ICreateMachineYamlOptions } from './types';
 import { assignEventDataToContext, assignLogsToContext } from '../utils';
 
 /**
@@ -14,18 +14,18 @@ import { assignEventDataToContext, assignLogsToContext } from '../utils';
  */
 export function createMachineYaml<TContext extends Record<string, any>>(
   yamlString: string,
-  options?: CreateMachineYamlOptions<TContext>,
+  options?: ICreateMachineYamlOptions<TContext>,
 ) {
   const jsonObj: any = jsYaml.load(yamlString, {
     onWarning: options?.onWarningYamlParse,
     json: false,
   });
-  if (!CreateStateMachineJSONSchemaValidator(jsonObj)) {
+  if (!orchestratorStateMachineSchemaValidator(jsonObj)) {
     throw new CreateMachineYamlError(
       `YAML validation error. See 'details' property for more information. ${JSON.stringify(
-        CreateStateMachineJSONSchemaValidator.errors,
+        orchestratorStateMachineSchemaValidator.errors,
       )}`,
-      CreateStateMachineJSONSchemaValidator.errors,
+      orchestratorStateMachineSchemaValidator.errors,
     );
   }
 

@@ -3,7 +3,7 @@ import Ajv from 'ajv';
 /**
  * JSON schema for validating state machine configuration.
  */
-export const CreateStateMachineJSONSchemaValidator = new Ajv().compile({
+export const orchestratorStateMachineSchemaValidator = new Ajv().compile({
   definitions: {
     TransitionConfig: {
       type: 'object',

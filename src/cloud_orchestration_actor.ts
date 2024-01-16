@@ -11,11 +11,9 @@ import { CloudEvent } from 'cloudevents';
 import {
   CloudOrchestratorMiddlewares,
   CloudOrchestrationActorOptions,
-  IOrchestrateCloudEvents,
   Version,
 } from './types';
 import { getAllPaths, pathValueToString } from './utils';
-import { withPersistableActor } from './persistable_actor';
 
 /**
  * A specialized Actor class designed for cloud orchestration scenarios. It extends the XState Actor class,
@@ -51,9 +49,9 @@ export default class CloudOrchestrationActor<
       inspect: (evt: InspectionEvent) => {
         if (evt.type === '@xstate.snapshot') {
           const _evt: InspectedSnapshotEvent = evt;
-          const evtSnapShotSign = Buffer.from(
-            JSON.stringify(_evt.snapshot || {}),
-          ).toString('base64');
+          const evtSnapShotSign = Buffer
+            .from(JSON.stringify(_evt.snapshot || {}))
+            .toString('base64');
           const snapshotPaths = getAllPaths(
             (_evt?.snapshot as AnyMachineSnapshot)?.value || {},
           ).map(pathValueToString);

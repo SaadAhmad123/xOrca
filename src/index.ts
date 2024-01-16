@@ -23,33 +23,25 @@ import {
   GenericEventObject,
   GenericActionFunction,
   GenericGuardFunction,
-  CreateMachineYamlOptions,
+  ICreateMachineYamlOptions,
 } from './create_machine_yaml/types';
 import { createMachineYaml } from './create_machine_yaml';
-import { CreateStateMachineJSONSchemaValidator } from './create_machine_yaml/schema';
+import { orchestratorStateMachineSchemaValidator } from './create_machine_yaml/schema';
 
-const Core = {
+export {
   PersistableActor,
   CloudOrchestrationActor,
   withPersistableActor,
   createCloudOrchestrationActor,
   orchestrateCloudEvents,
-};
-
-const Utils = {
   CreateMachineYamlError,
   createMachineYaml,
   createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,
-  CreateStateMachineJSONSchemaValidator,
-  makeCloudEventSubject: makeSubject,
-  parseCloudEventSubject: parseSubject,
-};
-
-export {
-  Core,
-  Utils,
+  orchestratorStateMachineSchemaValidator,
+  makeSubject as makeCloudEventSubject,
+  parseSubject as parseCloudEventSubject,
   PersistableActorInput,
   OnOrchestrationEvent,
   OnOrchestrationState,
@@ -59,5 +51,5 @@ export {
   GenericEventObject,
   GenericActionFunction,
   GenericGuardFunction,
-  CreateMachineYamlOptions,
+  ICreateMachineYamlOptions,
 };
