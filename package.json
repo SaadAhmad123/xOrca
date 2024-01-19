@@ -1,6 +1,6 @@
 {
   "name": "persistable-xstate-actor",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "This is a scalable library for managing state in serverless applications, offering persistence and locking for xState actors.",
   "main": "dist/index.js",
   "license": "MIT",
