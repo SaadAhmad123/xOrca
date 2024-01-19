@@ -2,7 +2,7 @@ import PersistableActor, { withPersistableActor } from './persistable_actor';
 import CloudOrchestrationActor, {
   createCloudOrchestrationActor,
 } from './cloud_orchestration_actor';
-import { orchestrateCloudEvents } from './orchestrateCloudEvents';
+import { orchestrateCloudEvents } from './cloud_orchestration_actor/orchestrate_cloud_events';
 import {
   PersistableActorInput,
   OnOrchestrationEvent,
@@ -20,15 +20,18 @@ import {
   makeSubject,
   parseSubject,
 } from './utils';
-import { CreateMachineYamlError } from './create_machine_yaml/errors';
+import { createOrchestrationMachine } from './create_orchestration_machine';
 import {
-  GenericEventObject,
-  GenericActionFunction,
-  GenericGuardFunction,
-  ICreateMachineYamlOptions,
-} from './create_machine_yaml/types';
-import { createMachineYaml } from './create_machine_yaml';
-import { orchestratorStateMachineSchemaValidator } from './create_machine_yaml/schema';
+  OrchestrationStateType,
+  OrchestrationMachineAllowedStringKeys,
+  OrchestrationMachineConfig,
+  OnOrchestrationEventTransformer,
+  OrchestrationTransitionConfig,
+  OnOrchestrationStateEmit,
+  OrchestrationStateConfig,
+  CreateOrchestrationMachineOptions,
+  OrchestrationMachine,
+} from './create_orchestration_machine/types';
 
 export {
   PersistableActor,
@@ -36,12 +39,10 @@ export {
   withPersistableActor,
   createCloudOrchestrationActor,
   orchestrateCloudEvents,
-  CreateMachineYamlError,
-  createMachineYaml,
+  createOrchestrationMachine,
   createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,
-  orchestratorStateMachineSchemaValidator,
   makeSubject as makeCloudEventSubject,
   parseSubject as parseCloudEventSubject,
   PersistableActorInput,
@@ -50,10 +51,15 @@ export {
   CloudOrchestratorMiddlewares,
   CloudOrchestrationActorOptions,
   IOrchestrateCloudEvents,
-  GenericEventObject,
-  GenericActionFunction,
-  GenericGuardFunction,
-  ICreateMachineYamlOptions,
   StateMachineWithVersion,
   Version,
+  OrchestrationStateType,
+  OrchestrationMachineAllowedStringKeys,
+  OrchestrationMachineConfig,
+  OnOrchestrationEventTransformer,
+  OrchestrationTransitionConfig,
+  OnOrchestrationStateEmit,
+  OrchestrationStateConfig,
+  CreateOrchestrationMachineOptions,
+  OrchestrationMachine,
 };

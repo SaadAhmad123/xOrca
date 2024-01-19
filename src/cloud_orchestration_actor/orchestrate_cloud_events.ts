@@ -4,12 +4,12 @@ import {
   IOrchestrateCloudEvents,
   Version,
   InitialOrchestrationEvent,
-} from './types';
-import { makeSubject, parseSubject } from './utils';
-import { withPersistableActor } from './persistable_actor';
+} from '../types';
+import { makeSubject, parseSubject } from '../utils';
+import { withPersistableActor } from '../persistable_actor';
 import CloudOrchestrationActor, {
   createCloudOrchestrationActor,
-} from './cloud_orchestration_actor';
+} from '.';
 
 /**
  * Orchestrates cloud events by processing each event, managing the state with persistent actors,
@@ -135,17 +135,16 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
                 throw new Error(
                   `The subject=${id} already exists so it cannot be initiated`,
                 );
-              return createCloudOrchestrationActor(statemachine.logic, {
-                version: statemachine.version,
-                name: param.name,
-                id,
-                snapshot,
-                input: initEvent.context,
-                middleware: {
-                  onState: param.onOrchestrationState,
-                  onCloudEvent: param.onCloudEvent,
+              return createCloudOrchestrationActor(
+                statemachine.orchestrationMachine,
+                {
+                  version: statemachine.version,
+                  name: param.name,
+                  id,
+                  snapshot,
+                  input: initEvent.context,
                 },
-              });
+              );
             },
           },
           async (actor) => {
@@ -195,16 +194,15 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
             if (!snapshot) {
               throw new Error(`The subject=${id} not already initiated.`);
             }
-            return createCloudOrchestrationActor(statemachine.logic, {
-              name,
-              version: statemachine.version,
-              id,
-              snapshot,
-              middleware: {
-                onState: param.onOrchestrationState,
-                onCloudEvent: param.onCloudEvent,
+            return createCloudOrchestrationActor(
+              statemachine.orchestrationMachine,
+              {
+                name,
+                version: statemachine.version,
+                id,
+                snapshot,
               },
-            });
+            );
           },
         },
         async (actor) => {

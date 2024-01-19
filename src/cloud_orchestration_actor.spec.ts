@@ -1,53 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
-
-import { orchestrateCloudEvents } from './orchestrateCloudEvents';
-import { SummaryStateMachineContext } from './cloud_orchestration_actor.spec.data';
+import { orchestrateCloudEvents } from './cloud_orchestration_actor/orchestrate_cloud_events';
+import { summaryStateMachine } from './cloud_orchestration_actor.spec.data';
 import { createCloudEvent } from './utils';
 import {
   LocalFileStorageManager,
   LockableStorageManager,
 } from 'unified-serverless-storage';
-import {
-  OnOrchestrationState,
-  IOrchestrateCloudEvents,
-  Version,
-} from './types';
+import { IOrchestrateCloudEvents, Version } from './types';
 import { CloudEvent } from 'cloudevents';
-import { createMachineYaml } from './create_machine_yaml';
-import { readFile, makeSubject } from './utils';
-
-const orchestrationMiddleware: Record<string, OnOrchestrationState> = {
-  FetchData: (id, state, { context }) => ({
-    type: 'books.com.fetch',
-    data: {
-      bookId: context.bookId,
-    },
-  }),
-  Summarise: (id, state, { context }) => ({
-    type: 'gpt.com.summary',
-    data: {
-      content: context.bookData,
-    },
-  }),
-  '#Regulate.#Grounded.Check': (id, state, { context }) => ({
-    type: 'regulations.com.summaryGrounded',
-    data: {
-      content: context.bookData,
-      summary: context.summary,
-    },
-  }),
-  '#Regulate.#Compliant.Check': (id, state, { context }) => ({
-    type: 'regulations.com.summaryCompliance',
-    data: {
-      content: context.summary,
-    },
-  }),
-  Done: (id, state, { context }) => ({
-    type: 'orch.done',
-    data: context,
-  }),
-};
+import { makeSubject } from './utils';
 
 describe('Cloud Orchestration Actor Test', () => {
   const stateMachineName = 'SummaryStateMachine';
@@ -63,21 +25,17 @@ describe('Cloud Orchestration Actor Test', () => {
     fs.rmdirSync(rootDir, { recursive: true });
   });
 
-  const summaryStateMachine = createMachineYaml<SummaryStateMachineContext>(
-    readFile('cloud_orchestration_actor.spec.data.yaml'),
-  );
   const orchestrationParams: IOrchestrateCloudEvents<
-    typeof summaryStateMachine
+    typeof summaryStateMachine.machine
   > = {
     name: stateMachineName,
     statemachine: [
       {
         version: stateMachineVersion,
-        logic: summaryStateMachine,
+        orchestrationMachine: summaryStateMachine,
       },
     ],
     storageManager: new LockableStorageManager({ storageManager: manager }),
-    onOrchestrationState: orchestrationMiddleware,
   };
 
   it('should throw an error when trying to orchestrate an event for an uninitiated process', async () => {

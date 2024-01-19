@@ -10,6 +10,7 @@ import {
 } from 'xstate';
 import { CloudEvent } from 'cloudevents';
 import { ILockableStorageManager } from 'unified-serverless-storage';
+import { OrchestrationMachine } from './create_orchestration_machine/types';
 
 /**
  * Represents the version of a state machine in the format '{number}.{number}.{number}'.
@@ -95,7 +96,6 @@ export type PersistableActorInput<
    */
   acquireLockMaxTimeout?: number;
 };
-
 
 /**
  * Middleware function type for processing CloudEvents.
@@ -189,14 +189,14 @@ export type CloudOrchestratorMiddlewares = {
    * the registered function is invoked, transforming and returning data. Use this to convert CloudEvent data
    * for merging or upserting into the orchestrator's context.
    */
-  onCloudEvent?: Record<string, OnOrchestrationEvent>;
+  onOrchestrationEvent?: Record<string, OnOrchestrationEvent>;
 
   /**
    * A record mapping event types to middleware functions for handling orchestration based on state and snapshot.
    * This is used to emit a CloudEvent when a specified state is reached. The onState function is called upon state
    * attainment, and the returned object constructs a CloudEvent. Access these events using `Instance<CloudOrchestrationActor>.eventsToEmit`.
    */
-  onState?: Record<string, OnOrchestrationState>;
+  onOrchestrationState?: Record<string, OnOrchestrationState>;
 };
 
 /**
@@ -254,14 +254,10 @@ export type StateMachineWithVersion<TLogic extends AnyActorLogic> = {
   version: Version;
 
   /**
-   * The state machine logic associated with the specified version.
-   * See xstate [documentation](https://stately.ai/docs/machines#creating-a-state-machine)
-   * @example
-   * // Example state machine logic.
-   * logic: createMachine({})
-   *        // or createMachineYaml() - Refer to persisted-xstate-actor documentation.
+   * The orchestration state machine logic associated with the specified version.
+   * Create this machine via `createOrchestrationMachine`
    */
-  logic: TLogic;
+  orchestrationMachine: OrchestrationMachine<TLogic>;
 };
 
 /**
@@ -283,12 +279,6 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
   /**
    * The state machine logic that governs the behavior of the orchestration.
    * It must be a list of state machine logics with their corresponding versions
-   * @example
-   * // Example state machine configuration.
-   * statemachine: [{
-   *   version: '1.0.0',
-   *   logic: createMachine({}) // See xstate [documentation](https://stately.ai/docs/machines#creating-a-state-machine)
-   * }]
    */
   statemachine: StateMachineWithVersion<TLogic>[];
 
@@ -301,42 +291,6 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
    * storageManager: myLockableStorageManager
    */
   storageManager: ILockableStorageManager;
-
-  /**
-   * A record mapping event types to middleware functions for processing CloudEvents.
-   * Invoked when a CloudEvent occurs, transforming and returning data for merging or upserting into the orchestrator's context.
-   * @example
-   * // Example onCloudEvent configuration.
-   * onCloudEvent?: Record<string, OnOrchestrationEvent> = {
-   *   'evt.books.fetch.success': (event) => ({
-   *     type: event.type,
-   *     data: {
-   *       // Transforming CloudEvent data
-   *       content: event.data.content.join(' ')
-   *     }
-   *   }),
-   * }
-   */
-  onCloudEvent?: Record<string, OnOrchestrationEvent>;
-
-  /**
-   * A record mapping event types to middleware functions for handling orchestration based on state and snapshot.
-   * Used to emit a CloudEvent when a specified state is reached. The onState function is called upon state attainment,
-   * and the returned object constructs a CloudEvent. Access these events using `Instance<CloudOrchestrationActor>.eventsToEmit`.
-   * @example
-   * // Example onOrchestrationState configuration.
-   * onOrchestrationState?: Record<string, OnOrchestrationState> = {
-   *   'fetch_book': (id, state, { context }) => ({
-   *     type: 'cmd.books.fetch',
-   *     data: { book_id: "some-book.pdf"}
-   *   }),
-   *   // Nested states
-   *   '#regulation.#grounded.check': (id, state, snapshot)
-   *     => ({...}),
-   *   '#regulation.#compliance.check': (id, state, snapshot) => ({...}),
-   * }
-   */
-  onOrchestrationState?: Record<string, OnOrchestrationState>;
 
   /**
    * Specifies the locking mode for the storage manager's operations.

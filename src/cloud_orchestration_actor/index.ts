@@ -2,7 +2,6 @@ import {
   Actor,
   AnyActorLogic,
   AnyMachineSnapshot,
-  ContextFrom,
   EventFromLogic,
   InspectedSnapshotEvent,
   InspectionEvent,
@@ -12,8 +11,9 @@ import {
   CloudOrchestratorMiddlewares,
   CloudOrchestrationActorOptions,
   Version,
-} from './types';
-import { getAllPaths, pathValueToString } from './utils';
+} from '../types';
+import { getAllPaths, pathValueToString } from '../utils';
+import { OrchestrationMachine } from '../create_orchestration_machine/types';
 
 /**
  * A specialized Actor class designed for cloud orchestration scenarios. It extends the XState Actor class,
@@ -95,7 +95,12 @@ export default class CloudOrchestrationActor<
   ) {
     const orchEvts = pathsToUpdate
       .map(
-        (item) => this.middleware?.onState?.[item]?.(this._id, item, snapshot),
+        (item) =>
+          this.middleware?.onOrchestrationState?.[item]?.(
+            this._id,
+            item,
+            snapshot,
+          ),
       )
       .map((item) =>
         item
@@ -142,7 +147,7 @@ export default class CloudOrchestrationActor<
       );
     }
     const transformedData =
-      this.middleware?.onCloudEvent?.[event.type]?.(event);
+      this.middleware?.onOrchestrationEvent?.[event.type]?.(event);
     const evt = {
       type: transformedData?.type || event.type,
       __cloudevent: event,
@@ -172,13 +177,19 @@ export default class CloudOrchestrationActor<
  * Factory function for creating instances of CloudOrchestrationActor. This function simplifies the instantiation
  * process, providing a convenient way to create new actors with custom logic and orchestration capabilities.
  *
- * @param logic - The logic instance that dictates the behavior of the actor.
+ * @param logic - The logic instance that dictates the behavior of the actor. Use `createOrchestrationMachine` to create machine.
  * @param options - Optional. Configuration options for the actor, including middleware and snapshot handling.
  * @returns A new instance of CloudOrchestrationActor configured with the provided logic and options.
  */
 export function createCloudOrchestrationActor<TLogic extends AnyActorLogic>(
-  logic: TLogic,
-  options: CloudOrchestrationActorOptions<TLogic>,
+  orchestrationMachine: OrchestrationMachine<TLogic>,
+  options: Omit<CloudOrchestrationActorOptions<TLogic>, 'middleware'>,
 ): CloudOrchestrationActor<TLogic> {
-  return new CloudOrchestrationActor(logic, options);
+  return new CloudOrchestrationActor(orchestrationMachine.machine, {
+    ...options,
+    middleware: {
+      onOrchestrationEvent: orchestrationMachine.onOrchestrationEvent,
+      onOrchestrationState: orchestrationMachine.onOrchestrationState,
+    },
+  });
 }
