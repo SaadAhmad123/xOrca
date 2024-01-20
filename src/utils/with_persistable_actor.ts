@@ -13,7 +13,6 @@ import { PersistableActorInput } from '../persistable_actor/types';
  * @param callback - An asynchronous callback function for performing actions with the actor instance.
  * @throws {Error} - Propagates any errors that occur during the actor's lifecycle.
  */
-
 export async function withPersistableActor<
   TLogic extends AnyActorLogic,
   TActor extends Actor<TLogic>
