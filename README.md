@@ -1,4 +1,4 @@
-> See Github repository for this project [here](https://github.com/SaadAhmad123/persistable-xstate-actor) and for documentation see [this](https://saadahmad123.github.io/persistable-xstate-actor/)
+> See Github repository for this project [here](https://github.com/SaadAhmad123/xOrca) and for documentation see [this](https://github.com/SaadAhmad123/xOrca)
 
 
 # xOrca
