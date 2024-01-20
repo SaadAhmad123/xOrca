@@ -3,7 +3,7 @@ import {
   createCloudEvent,
   isDictionary,
   PathValue,
-} from './utils'; // Replace 'yourFileName' with the actual file name
+} from '../src/utils'; // Replace 'yourFileName' with the actual file name
 
 describe('getAllPaths', () => {
   test('returns paths and values from an object', () => {

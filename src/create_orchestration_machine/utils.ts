@@ -1,4 +1,4 @@
-import { OnOrchestrationEvent, OnOrchestrationState } from '../types';
+import { OnOrchestrationEvent, OnOrchestrationState } from '../cloud_orchestration_actor/types';
 import { getAllPaths } from '../utils';
 import {
   OnOrchestrationEventTransformer,

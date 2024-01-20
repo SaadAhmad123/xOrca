@@ -1,15 +1,16 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { orchestrateCloudEvents } from './cloud_orchestration_actor/orchestrate_cloud_events';
+import { orchestrateCloudEvents } from '../../src/orchestrate_cloud_events';
 import { summaryStateMachine } from './cloud_orchestration_actor.spec.data';
-import { createCloudEvent } from './utils';
+import { createCloudEvent } from '../../src/utils';
 import {
   LocalFileStorageManager,
   LockableStorageManager,
 } from 'unified-serverless-storage';
-import { IOrchestrateCloudEvents, Version } from './types';
+import { IOrchestrateCloudEvents } from '../../src/orchestrate_cloud_events/types';
+import { Version } from '../../src/cloud_orchestration_actor/types';
 import { CloudEvent } from 'cloudevents';
-import { makeSubject } from './utils';
+import { makeSubject } from '../../src/utils';
 
 describe('Cloud Orchestration Actor Test', () => {
   const stateMachineName = 'SummaryStateMachine';

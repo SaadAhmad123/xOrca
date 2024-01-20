@@ -1,18 +1,19 @@
-import PersistableActor, { withPersistableActor } from './persistable_actor';
-import CloudOrchestrationActor, {
-  createCloudOrchestrationActor,
-} from './cloud_orchestration_actor';
-import { orchestrateCloudEvents } from './cloud_orchestration_actor/orchestrate_cloud_events';
+import PersistableActor from './persistable_actor';
+import { withPersistableActor } from './utils/with_persistable_actor';
+import CloudOrchestrationActor from './cloud_orchestration_actor';
+import { createCloudOrchestrationActor } from './utils/create_cloud_orchestration_actor';
+import { orchestrateCloudEvents } from './orchestrate_cloud_events';
 import {
-  PersistableActorInput,
+  IOrchestrateCloudEvents,
+  OrchestrationMachineWithVersion
+} from './orchestrate_cloud_events/types';
+import {
   OnOrchestrationEvent,
   OnOrchestrationState,
-  CloudOrchestratorMiddlewares,
-  CloudOrchestrationActorOptions,
-  IOrchestrateCloudEvents,
-  StateMachineWithVersion,
-  Version,
-} from './types';
+  CloudOrchestrationMiddlewares,
+  CloudOrchestrationActorOptions, Version
+} from './cloud_orchestration_actor/types';
+import { PersistableActorInput } from './persistable_actor/types';
 import {
   createCloudEvent,
   assignEventDataToContext,
@@ -48,10 +49,10 @@ export {
   PersistableActorInput,
   OnOrchestrationEvent,
   OnOrchestrationState,
-  CloudOrchestratorMiddlewares,
+  CloudOrchestrationMiddlewares,
   CloudOrchestrationActorOptions,
   IOrchestrateCloudEvents,
-  StateMachineWithVersion,
+  OrchestrationMachineWithVersion,
   Version,
   OrchestrationStateType,
   OrchestrationMachineAllowedStringKeys,

@@ -1,5 +1,4 @@
-import { assignEventDataToContext } from './utils';
-import { createOrchestrationMachine } from './create_orchestration_machine';
+import { createOrchestrationMachine } from '../../src/create_orchestration_machine';
 
 type TriState = 'TRUE' | 'FALSE' | 'ERRORED';
 

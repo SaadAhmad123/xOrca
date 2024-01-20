@@ -2,14 +2,13 @@ import { AnyActorLogic, ContextFrom } from 'xstate';
 import { CloudEvent } from 'cloudevents';
 import {
   IOrchestrateCloudEvents,
-  Version,
-  InitialOrchestrationEvent,
-} from '../types';
+  InitialOrchestrationEvent
+} from './types';
+import { Version } from '../cloud_orchestration_actor/types';
 import { makeSubject, parseSubject } from '../utils';
-import { withPersistableActor } from '../persistable_actor';
-import CloudOrchestrationActor, {
-  createCloudOrchestrationActor,
-} from '.';
+import { withPersistableActor } from '../utils/with_persistable_actor';
+import CloudOrchestrationActor from '../cloud_orchestration_actor';
+import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestration_actor';
 
 /**
  * Orchestrates cloud events by processing each event, managing the state with persistent actors,

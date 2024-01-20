@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CloudEvent, CloudEventV1 } from 'cloudevents';
 import { assign } from 'xstate';
-import { Version } from './types';
+import { Version } from '../cloud_orchestration_actor/types';
 
 /**
  * Represents a path and its corresponding value in an object.

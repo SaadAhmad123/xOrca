@@ -5,7 +5,7 @@ import {
   AnyActor,
   AnyActorLogic,
 } from 'xstate';
-import { OnOrchestrationEvent, OnOrchestrationState } from '../types';
+import { OnOrchestrationEvent, OnOrchestrationState } from '../cloud_orchestration_actor/types';
 
 /**
  * Type representing possible states in an orchestration machine.

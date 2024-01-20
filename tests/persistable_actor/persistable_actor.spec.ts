@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { withPersistableActor, PersistableActor } from '.';
-import trafficStateMachine from './index.spec.data';
-import { PersistableActorInput } from './types';
+import { withPersistableActor, PersistableActor } from '../../src';
+import trafficStateMachine from './persistable_actor.spec.data';
+import { PersistableActorInput } from '../../src/persistable_actor/types';
 import { Actor, createActor } from 'xstate';
 import { config } from 'dotenv';
 import {
@@ -10,7 +10,7 @@ import {
   LocalFileStorageManager,
   LockableStorageManager,
 } from 'unified-serverless-storage';
-import { DynamoDbManager } from './index.spec.lib';
+import { DynamoDbManager } from './persistable_actor.spec.lib';
 config();
 
 const { AWS_ACCESS_KEY, AWS_SECRET_KEY, TEST_DYNAMO_DB_NAME, AWS_REGION } =

@@ -8,12 +8,11 @@ import {
 } from 'xstate';
 import { CloudEvent } from 'cloudevents';
 import {
-  CloudOrchestratorMiddlewares,
+  CloudOrchestrationMiddlewares,
   CloudOrchestrationActorOptions,
-  Version,
-} from '../types';
+  Version
+} from './types';
 import { getAllPaths, pathValueToString } from '../utils';
-import { OrchestrationMachine } from '../create_orchestration_machine/types';
 
 /**
  * A specialized Actor class designed for cloud orchestration scenarios. It extends the XState Actor class,
@@ -23,7 +22,7 @@ import { OrchestrationMachine } from '../create_orchestration_machine/types';
 export default class CloudOrchestrationActor<
   TLogic extends AnyActorLogic,
 > extends Actor<TLogic> {
-  private middleware: CloudOrchestratorMiddlewares | undefined;
+  private middleware: CloudOrchestrationMiddlewares | undefined;
   private orchestrationEvents: CloudEvent<Record<string, any>>[] = [];
   private _id: string;
   private stateMachineVersion: Version;
@@ -171,25 +170,4 @@ export default class CloudOrchestrationActor<
   public get eventsToEmit() {
     return this.orchestrationEvents;
   }
-}
-
-/**
- * Factory function for creating instances of CloudOrchestrationActor. This function simplifies the instantiation
- * process, providing a convenient way to create new actors with custom logic and orchestration capabilities.
- *
- * @param logic - The logic instance that dictates the behavior of the actor. Use `createOrchestrationMachine` to create machine.
- * @param options - Optional. Configuration options for the actor, including middleware and snapshot handling.
- * @returns A new instance of CloudOrchestrationActor configured with the provided logic and options.
- */
-export function createCloudOrchestrationActor<TLogic extends AnyActorLogic>(
-  orchestrationMachine: OrchestrationMachine<TLogic>,
-  options: Omit<CloudOrchestrationActorOptions<TLogic>, 'middleware'>,
-): CloudOrchestrationActor<TLogic> {
-  return new CloudOrchestrationActor(orchestrationMachine.machine, {
-    ...options,
-    middleware: {
-      onOrchestrationEvent: orchestrationMachine.onOrchestrationEvent,
-      onOrchestrationState: orchestrationMachine.onOrchestrationState,
-    },
-  });
 }
