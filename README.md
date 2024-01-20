@@ -1,4 +1,4 @@
-> For a comprehensive understanding of this project, kindly visit the [Github repository](https://github.com/SaadAhmad123/xOrca). You can also delve into the specifics by accessing the [project's documentation](https://saadahmad123.github.io/xOrca/), where you'll find detailed Typedocs. 
+> For a comprehensive understanding/ documentation of this project, kindly visit the [Github repository](https://github.com/SaadAhmad123/xOrca). You can also delve into the specifics by accessing the [project's documentation](https://saadahmad123.github.io/xOrca/), where you'll find detailed Typedocs. 
 
 > Note: This is called **xOrca** which is a derived from word **xOrchestrator** because this library build on top of [xstate@5.\*](https://stately.ai/docs/quick-start)
 
@@ -45,7 +45,7 @@ Take, for instance, the process of orchestrating a literature summary tool like 
 
 Once the command event has been issued, the orchestrator process is designed to pause, resuming only when a new or response event is received. This ensures that the process picks up right where it left off.
 
-# Concepts
+## Concepts
 
 This library understand that some level of coupling between microservices is unavoidable. Its proposition is to manage this coupling gracefully. 
 
@@ -98,11 +98,13 @@ This system promotes flexibility for growth and iteration. Orchestrators can be 
 
 Additionally, incorporating version control can further enhance the management and scalability of your orchestrations. This allows individual orchestrators to be updated or modified without affecting or disrupting older, live orchestrations within the system. This ensures a smoother transition during upgrades and promotes backward compatibility.
 
-# Core Dependencies
+## Core Dependencies
 
 Given that this library functions as a core orchestrator, it is imperative for it to incorporate a robust rules engine and a state management system. In this context, it views a state machine as a pivotal component of the rules engine. To construct and execute this state machine, the library leverages **xstate@5.\***, a highly acclaimed open-source state machine definition and execution tool in TypeScript developed by [stately.ai](https://stately.ai). Recognized for its popularity and effectiveness, xstate ensures a reliable foundation for orchestrating complex workflows.
 
 Complementing this, the library relies on a standardized storage mechanism facilitated by the [unified-serverless-storage](https://www.npmjs.com/package/unified-serverless-storage?activeTab=readme) package. This integral dependency empowers the library to seamlessly manage state storage across various cloud platforms. The synergy between xstate and unified-serverless-storage enhances the library's capabilities, ensuring efficient rule execution and streamlined state management in cloud environments.
+
+For standardisation, the CloudEvent spec is adopted by this library. To enforce this specification, the [cloudevents](https://www.npmjs.com/package/cloudevents) package is used.
 
 ## Library Components
 
@@ -110,10 +112,10 @@ Within the library, various components are meticulously crafted to facilitate se
 
 - **`orchestrateCloudEvents`** [[See details](/readme/orchestrateCloudEvents.md)] This function serves as a cornerstone, enabling the swift incorporation of orchestration into code. By adeptly managing the intricacies of state creation, persistence, and rules engine execution, it offers a straightforward solution for orchestrating complex workflows.
 
-- **`createOrchestrationMachine`** [[See details](/readme/orchestrateCloudEvents.md)] This class empowers users to construct a state machine with a subset of features from Xstate, excluding `invoke` and `delay`. It seamlessly integrates essential features tailored for orchestrations, providing a versatile tool for crafting intricate workflows.
+- **`createOrchestrationMachine`** [[See details](/readme/createOrchestrationMachine.md)] This class empowers users to construct a state machine with a subset of features from Xstate, excluding `invoke` and `delay`. It seamlessly integrates essential features tailored for orchestrations, providing a versatile tool for crafting intricate workflows.
 
-- **`PersistableActor`** [[See details](/readme/orchestrateCloudEvents.md)] Designed to enhance any xState Actor, this class introduces persistence to cloud storage, fortified with robust locking mechanisms. It extends the capabilities of xState Actors, ensuring resilient and secure storage of state information.
+- **`PersistableActor`** [[See details](https://saadahmad123.github.io/xOrca/classes/PersistableActor.html) and [withPersistableActor](https://saadahmad123.github.io/xOrca/functions/withPersistableActor.html)] Designed to enhance any xState Actor, this class introduces persistence to cloud storage, fortified with robust locking mechanisms. It extends the capabilities of xState Actors, ensuring resilient and secure storage of state information.
 
-- **`CloudOrchestrationActor`** [[See details](/readme/orchestrateCloudEvents.md)] A subclass of xState Actor, this component goes beyond the standard features, incorporating properties, methods, and mechanisms essential for efficient execution of state machines within the dynamic context of short-lived serverless environments. Its design caters specifically to the unique demands of orchestrating workflows in such dynamic and resource-constrained settings.
+- **`CloudOrchestrationActor`** [[See details](https://saadahmad123.github.io/xOrca/classes/CloudOrchestrationActor.html)] A subclass of xState Actor, this component goes beyond the standard features, incorporating properties, methods, and mechanisms essential for efficient execution of state machines within the dynamic context of short-lived serverless environments. Its design caters specifically to the unique demands of orchestrating workflows in such dynamic and resource-constrained settings.
 
 For other functionalities see the [Typedocs](https://saadahmad123.github.io/xOrca/).

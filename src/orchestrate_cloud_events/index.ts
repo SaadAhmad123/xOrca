@@ -9,6 +9,7 @@ import { makeSubject, parseSubject } from '../utils';
 import { withPersistableActor } from '../utils/with_persistable_actor';
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
 import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestration_actor';
+import {v4 as uuidv4} from 'uuid'
 
 /**
  * Orchestrates cloud events by processing each event, managing the state with persistent actors,
@@ -44,7 +45,7 @@ import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestrati
  */
 export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
   param: IOrchestrateCloudEvents<TLogic>,
-  events: CloudEvent<Record<string, any>>[],
+  events: CloudEvent<Record<string, any>>[] = [],
   inits: InitialOrchestrationEvent<TLogic>[] = [],
 ) {
   const errors: {
@@ -53,6 +54,7 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
     events?: CloudEvent<Record<string, any>>[];
   }[] = [];
   events = events.filter((e) => Boolean(e?.subject));
+  inits = inits.map(item => ({...item, processId: item.processId || uuidv4()}))
   const eventSubjects = Array.from(new Set(events.map((e) => e.subject)));
   const initSubjects = Array.from(new Set(inits.map((e) => e.processId)));
   const uniqueSubjects = Array.from(
@@ -118,7 +120,7 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
       try {
         const statemachine = getStateMachine(initEvent.version);
         const subject = makeSubject(
-          initEvent.processId,
+          initEvent.processId || uuidv4(),
           param.name,
           statemachine.version,
         );

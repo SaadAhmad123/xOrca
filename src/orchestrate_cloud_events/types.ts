@@ -89,12 +89,12 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
 
 export type InitialOrchestrationEvent<TLogic extends AnyActorLogic> = {
   /**
-   * The process ID of the orchestration.
+   * The process ID seed of the orchestration.
    * @example
    * // Example process ID.
    * processId: "abc123"
    */
-  processId: string;
+  processId?: string;
 
   /**
    * The initial data seeded to the orchestration context.

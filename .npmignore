@@ -9,4 +9,5 @@ tsconfig.json
 .env
 coverage
 docs
+readme
 README.md
