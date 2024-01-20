@@ -1,9 +1,32 @@
 > See Github repository for this project [here](https://github.com/SaadAhmad123/persistable-xstate-actor) and for documentation see [this](https://saadahmad123.github.io/persistable-xstate-actor/)
 
 
-# A library to orchestrate event-driven systems in a serverless environment
+# xOrca
+#### A library/ framework to orchestrate event-driven systems in a serverless environment
 
 The aim of this library is to equip users with the necessary tools for creating and managing command-driven, event-oriented systems in a serverless, ephemeral environment. It's designed to avoid the rigidity of being tied to a specific Cloud Provider, thus encouraging flexibility and independence.
+
+The `persistable-xstate-actor` library is a sophisticated and scalable tool for managing state in distributed and serverless applications. Leveraging [unified-serverless-storage](https://www.npmjs.com/package/unified-serverless-storage?activeTab=readme) for versatile storage solutions and [xstate (v5)](https://stately.ai/docs/quick-start) for state management, this library stands as a cornerstone for robust stateful application development.
+
+### Installation
+
+Install using npm:
+
+```bash
+npm install persistable-xstate-actor unified-serverless-storage cloudevents
+```
+
+Or via yarn:
+
+```bash
+yarn add persistable-xstate-actor unified-serverless-storage cloudevents
+```
+
+If you are using **AWS** as backend you will need to install `aws-sdk` via
+
+```bash
+yarn add aws-sdk
+```
 
 ## Alternatives
 
