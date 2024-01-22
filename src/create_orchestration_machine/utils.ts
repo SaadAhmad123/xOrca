@@ -1,4 +1,7 @@
-import { OnOrchestrationEvent, OnOrchestrationState } from '../cloud_orchestration_actor/types';
+import {
+  OnOrchestrationEvent,
+  OnOrchestrationState,
+} from '../cloud_orchestration_actor/types';
 import { getAllPaths } from '../utils';
 import {
   OnOrchestrationEventTransformer,
@@ -32,10 +35,20 @@ export function makeOnOrchestrationState<TContext extends Record<string, any>>(
                   .join('.')}.${item.path.pop()}`
               : item.path.pop(),
             emits?.[item.value],
-          ] as [string, OnOrchestrationStateEmit<TContext> | undefined],
+            item.value,
+          ] as [string, OnOrchestrationStateEmit<TContext> | undefined, string],
       )
-      .filter(([_, value]) => Boolean(value))
-      .map(([key, value]) => ({ [key]: value })),
+      .filter(([_, value, _emitKey]) => Boolean(value))
+      //.map(([key, value, _emitKey]) => ({[key] : value}))
+      .map(([key, value, emitKey]) => ({
+        [key]: ((...args) => {
+          const resp = value?.(...args);
+          return {
+            type: resp?.type || emitKey,
+            data: resp?.data || {},
+          };
+        }) as OnOrchestrationState,
+      })),
   ) as Record<string, OnOrchestrationState>;
 }
 

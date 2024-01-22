@@ -10,7 +10,7 @@ import { CloudEvent } from 'cloudevents';
 import {
   CloudOrchestrationMiddlewares,
   CloudOrchestrationActorOptions,
-  Version
+  Version,
 } from './types';
 import { getAllPaths, pathValueToString } from '../utils';
 

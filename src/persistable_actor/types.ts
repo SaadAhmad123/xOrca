@@ -1,7 +1,6 @@
 import { ILockableStorageManager } from 'unified-serverless-storage';
 import { AnyActorLogic, Actor, Snapshot } from 'xstate';
 
-
 /**
  * Defines the structure for the input parameters required by the `withPersistance` function.
  * This interface is crucial for setting up a persistent actor in an XState context,
@@ -10,7 +9,7 @@ import { AnyActorLogic, Actor, Snapshot } from 'xstate';
 
 export type PersistableActorInput<
   TLogic extends AnyActorLogic,
-  TActor extends Actor<TLogic>
+  TActor extends Actor<TLogic>,
 > = {
   /**
    * The unique identifier for the actor. This ID is used to differentiate between

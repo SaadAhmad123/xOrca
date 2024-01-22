@@ -5,7 +5,10 @@ import {
   AnyActor,
   AnyActorLogic,
 } from 'xstate';
-import { OnOrchestrationEvent, OnOrchestrationState } from '../cloud_orchestration_actor/types';
+import {
+  OnOrchestrationEvent,
+  OnOrchestrationState,
+} from '../cloud_orchestration_actor/types';
 
 /**
  * Type representing possible states in an orchestration machine.
@@ -171,7 +174,7 @@ export type OnOrchestrationStateEmit<
   state: string,
   snapshot: MachineSnapshot<TContext, any, any, any, any, any, any>,
 ) => {
-  type: string;
+  type?: string;
   data: Record<OrchestrationMachineAllowedStringKeys, any>;
 };
 

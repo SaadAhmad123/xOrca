@@ -3,7 +3,7 @@
 ```typescript
 /**
  * Orchestrates cloud events, providing a streamlined solution for complex workflows.
- * 
+ *
  * @template TLogic - Generic type representing the logic associated with orchestration.
  * @param param - Configuration for the state machine and storage.
  * @param events - Cloud events from ongoing orchestration processes (identified by process ID in the CloudEvent subject).
@@ -14,18 +14,18 @@
  * @property processIdContext - Context information derived from the orchestration process IDs.
  */
 async function orchestrateCloudEvents<TLogic>(
-    param: OrchestrationConfig,
-    events: CloudEvent<Record<string, any>>[],
-    inits?: InitialOrchestrationEvent<TLogic>[]
+  param: OrchestrationConfig,
+  events: CloudEvent<Record<string, any>>[],
+  inits?: InitialOrchestrationEvent<TLogic>[],
 ): Promise<{
-    errors: {
-        error: string;
-        events?: CloudEvent<Record<string, any>>[];
-        initEvents?: InitialOrchestrationEvent<TLogic>[];
-    }[];
-    eventsToEmit: CloudEvent<Record<string, any>>[];
-    processIdContext: Record<string, ContextFrom<TLogic>>;
-}>
+  errors: {
+    error: string;
+    events?: CloudEvent<Record<string, any>>[];
+    initEvents?: InitialOrchestrationEvent<TLogic>[];
+  }[];
+  eventsToEmit: CloudEvent<Record<string, any>>[];
+  processIdContext: Record<string, ContextFrom<TLogic>>;
+}>;
 ```
 
 For detailed information, refer to the [Typedocs](https://saadahmad123.github.io/xOrca/functions/orchestrateCloudEvents.html).
@@ -34,7 +34,7 @@ This function serves as a pivotal component, seamlessly integrating orchestratio
 
 The function takes the configuration for the state machine and storage, along with `events` representing cloud events from active orchestration processes (identified by the process ID in the CloudEvent subject). Additionally, it accepts `inits`—a list of objects used to initialize new orchestration processes. The returned promise resolves to an object containing orchestration results, including encountered errors, events to be emitted, and contextual information derived from orchestration process IDs.
 
-## Example 
+## Example
 
 ```typescript
 import {
@@ -42,12 +42,9 @@ import {
   LockableStorageManager,
   S3StorageManager,
 } from 'unified-serverless-storage';
-import {
-    createOrchestrationMachine,
-    orchestrateCloudEvents
-} from 'xorca'
+import { createOrchestrationMachine, orchestrateCloudEvents } from 'xorca';
 
-const config = {} // The config with the env variables
+const config = {}; // The config with the env variables
 
 const storageManager = new S3StorageManager(
   config.ORCH_BACKEND_S3_STORAGE,
@@ -74,32 +71,36 @@ const store = new LockableStorageManager({
 
 // Example orchestration machine creation
 // For sample
-const machine = createOrchestrationMachine(/* See the [docs here](/readme/createOrchestrationMachine.md) */)
+const machine =
+  createOrchestrationMachine(/* See the [docs here](/readme/createOrchestrationMachine.md) */);
 async function main() {
-    const events: Array<CloudEvent<Record<string,any>>> = [] // List already running orchestration event
-    const inits: Array<InitialOrchestrationEvent<any>> = [] // List of initialisations
-    
-    const {
-        eventsToEmit,
-        processIdContext,
-        errors
-    } = await orchestrateCloudEvents({
+  const events: Array<CloudEvent<Record<string, any>>> = []; // List already running orchestration event
+  const inits: Array<InitialOrchestrationEvent<any>> = []; // List of initialisations
+
+  const { eventsToEmit, processIdContext, errors } =
+    await orchestrateCloudEvents(
+      {
         name: stateMachineName,
         statemachine: [
-            {
-                version: '0.0.1',
-                orchestrationMachine: machine,
-            },
+          {
+            version: '0.0.1',
+            orchestrationMachine: machine,
+          },
         ],
         storageManager: store,
         // Optional
         locking: 'write',
         // Optional
-        onSnapshot: (...args) => {console.log({...args})}
-    }, events, inits)
+        onSnapshot: (...args) => {
+          console.log({ ...args });
+        },
+      },
+      events,
+      inits,
+    );
 
-    return {eventsToEmit}
+  return { eventsToEmit };
 }
 
-main()
+main();
 ```

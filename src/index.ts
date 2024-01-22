@@ -5,13 +5,14 @@ import { createCloudOrchestrationActor } from './utils/create_cloud_orchestratio
 import { orchestrateCloudEvents } from './orchestrate_cloud_events';
 import {
   IOrchestrateCloudEvents,
-  OrchestrationMachineWithVersion
+  OrchestrationMachineWithVersion,
 } from './orchestrate_cloud_events/types';
 import {
   OnOrchestrationEvent,
   OnOrchestrationState,
   CloudOrchestrationMiddlewares,
-  CloudOrchestrationActorOptions, Version
+  CloudOrchestrationActorOptions,
+  Version,
 } from './cloud_orchestration_actor/types';
 import { PersistableActorInput } from './persistable_actor/types';
 import {

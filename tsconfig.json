@@ -11,8 +11,14 @@
     "resolveJsonModule": true
   },
   "include": [
-    "src/**/*.ts" // Include all TypeScript files in the 'src' directory
-, "tests/persistable_actor/persistable_actor.spec.lib.ts", "tests/persistable_actor/persistable_actor.spec.ts", "tests/persistable_actor/persistable_actor.spec.data.ts", "tests/cloud_orchestration_actor/cloud_orchestration_actor.spec.ts", "tests/cloud_orchestration_actor/cloud_orchestration_actor.spec.data.ts", "tests/utils.spec.ts"  ],
+    "src/**/*.ts", // Include all TypeScript files in the 'src' directory
+    "tests/persistable_actor/persistable_actor.spec.lib.ts",
+    "tests/persistable_actor/persistable_actor.spec.ts",
+    "tests/persistable_actor/persistable_actor.spec.data.ts",
+    "tests/cloud_orchestration_actor/cloud_orchestration_actor.spec.ts",
+    "tests/cloud_orchestration_actor/cloud_orchestration_actor.spec.data.ts",
+    "tests/utils.spec.ts"
+  ],
   "exclude": [
     "node_modules", // your existing exclude pattern
     "**/*.spec.ts", // this line will exclude all .spec.ts files

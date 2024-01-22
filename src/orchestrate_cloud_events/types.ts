@@ -3,7 +3,6 @@ import { AnyActorLogic, SnapshotFrom, ContextFrom } from 'xstate';
 import { Version } from '../cloud_orchestration_actor/types';
 import { OrchestrationMachine } from '../create_orchestration_machine/types';
 
-
 /**
  * Represents a  orchestration state machine configuration, including its version and logic.
  *

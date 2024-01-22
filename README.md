@@ -1,8 +1,9 @@
-> For a comprehensive understanding/ documentation of this project, kindly visit the [Github repository](https://github.com/SaadAhmad123/xOrca). You can also delve into the specifics by accessing the [project's documentation](https://saadahmad123.github.io/xOrca/), where you'll find detailed Typedocs. 
+> For a comprehensive understanding/ documentation of this project, kindly visit the [Github repository](https://github.com/SaadAhmad123/xOrca). You can also delve into the specifics by accessing the [project's documentation](https://saadahmad123.github.io/xOrca/), where you'll find detailed Typedocs.
 
 > Note: This is called **xOrca** which is a derived from word **xOrchestrator** because this library build on top of [xstate@5.\*](https://stately.ai/docs/quick-start)
 
 # xOrca
+
 #### A library/ framework to orchestrate event-driven systems in a serverless environment
 
 The aim of this library is to equip users with the necessary tools for creating and managing command-driven, event-oriented systems in a serverless, ephemeral environment. It's designed to avoid the rigidity of being tied to a specific Cloud Provider, thus encouraging flexibility and independence.
@@ -47,7 +48,7 @@ Once the command event has been issued, the orchestrator process is designed to 
 
 ## Concepts
 
-This library understand that some level of coupling between microservices is unavoidable. Its proposition is to manage this coupling gracefully. 
+This library understand that some level of coupling between microservices is unavoidable. Its proposition is to manage this coupling gracefully.
 
 ![Dependency direction](/readme/images/dir_dep.png)
 [Source](https://youtu.be/zt9DFMkjkEA?t=1634)
@@ -67,18 +68,21 @@ A conceptual diagram is provided below:
 ![Concept](/readme/images/concept.png)
 
 A typical orchestration command CloudEvent may look as follows:
+
 ```json
 {
   "source": "/orch/book/summary",
   "datacontenttype": "application/cloudevents+json; charset=UTF-8",
   "data": {
-    "bookId": "some-book.pdf",
+    "bookId": "some-book.pdf"
   },
   "subject": "Some subject string which must remain consistent throughout and orchestration. This is the orchestration reference",
-  "type": "cmd.books.fetch",
+  "type": "cmd.books.fetch"
 }
 ```
+
 A corresponding response CloudEvent from the microservice could look like:
+
 ```json
 {
   "source": "/srvc/book/fetch",
@@ -88,13 +92,13 @@ A corresponding response CloudEvent from the microservice could look like:
     "bookContent": ["pages", "of", "book"]
   },
   "subject": "Some subject string which must remain consistent throughout and orchestration. This is the orchestration reference",
-  "type": "evt.books.fetch.success",
+  "type": "evt.books.fetch.success"
 }
 ```
 
 It is believed that these specified guidelines will enable to manage existing coupling more effectively and provide better traceability. By maintaining this approach, it becomes easier to discern dependencies between orchestrators and microservices. When a microservice is updated, it becomes readily apparent which orchestrators will be affected, thus facilitating their subsequent updates.
 
-This system promotes flexibility for growth and iteration. Orchestrators can be added without the need to worry about existing orchestrators. Similarly, new microservices can be introduced to a Fleet without concern for disrupting the current structure. Observers (consumers of type="notif.*") can be added seamlessly, with no negative repercussions on the existing services. Furthermore, orchestrators can be initiated either by a microservice within the Fleet or through an external service, thereby offering an extended area of applicability and utilization. 
+This system promotes flexibility for growth and iteration. Orchestrators can be added without the need to worry about existing orchestrators. Similarly, new microservices can be introduced to a Fleet without concern for disrupting the current structure. Observers (consumers of type="notif.\*") can be added seamlessly, with no negative repercussions on the existing services. Furthermore, orchestrators can be initiated either by a microservice within the Fleet or through an external service, thereby offering an extended area of applicability and utilization.
 
 Additionally, incorporating version control can further enhance the management and scalability of your orchestrations. This allows individual orchestrators to be updated or modified without affecting or disrupting older, live orchestrations within the system. This ensures a smoother transition during upgrades and promotes backward compatibility.
 

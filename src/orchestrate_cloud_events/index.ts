@@ -1,15 +1,12 @@
 import { AnyActorLogic, ContextFrom } from 'xstate';
 import { CloudEvent } from 'cloudevents';
-import {
-  IOrchestrateCloudEvents,
-  InitialOrchestrationEvent
-} from './types';
+import { IOrchestrateCloudEvents, InitialOrchestrationEvent } from './types';
 import { Version } from '../cloud_orchestration_actor/types';
 import { makeSubject, parseSubject } from '../utils';
 import { withPersistableActor } from '../utils/with_persistable_actor';
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
 import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestration_actor';
-import {v4 as uuidv4} from 'uuid'
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Orchestrates cloud events by processing each event, managing the state with persistent actors,
@@ -54,7 +51,10 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
     events?: CloudEvent<Record<string, any>>[];
   }[] = [];
   events = events.filter((e) => Boolean(e?.subject));
-  inits = inits.map(item => ({...item, processId: item.processId || uuidv4()}))
+  inits = inits.map((item) => ({
+    ...item,
+    processId: item.processId || uuidv4(),
+  }));
   const eventSubjects = Array.from(new Set(events.map((e) => e.subject)));
   const initSubjects = Array.from(new Set(inits.map((e) => e.processId)));
   const uniqueSubjects = Array.from(

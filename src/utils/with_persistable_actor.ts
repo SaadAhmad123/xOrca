@@ -3,7 +3,6 @@ import PersistableActor from '../persistable_actor';
 import { AnyActorLogic, Actor } from 'xstate';
 import { PersistableActorInput } from '../persistable_actor/types';
 
-
 /**
  * Helper function for managing the lifecycle of a PersistableActor.
  * Facilitates the use of PersistableActor by handling initialization, action execution,
@@ -15,10 +14,10 @@ import { PersistableActorInput } from '../persistable_actor/types';
  */
 export async function withPersistableActor<
   TLogic extends AnyActorLogic,
-  TActor extends Actor<TLogic>
+  TActor extends Actor<TLogic>,
 >(
   params: PersistableActorInput<TLogic, TActor>,
-  callback: (actor: TActor) => Promise<void>
+  callback: (actor: TActor) => Promise<void>,
 ) {
   const _persistedActor = new PersistableActor<TLogic, TActor>(params);
   try {

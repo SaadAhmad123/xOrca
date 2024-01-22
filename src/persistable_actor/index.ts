@@ -9,7 +9,7 @@ import { utils } from 'unified-serverless-storage';
  *
  * The class offers methods to initialize, save, and close the actor, managing its lifecycle
  * and ensuring data integrity through optional locking during state persistence.
- * 
+ *
  * Use `withPersistableActor` to use this.
  */
 export default class PersistableActor<

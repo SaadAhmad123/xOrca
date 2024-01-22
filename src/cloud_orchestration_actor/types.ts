@@ -1,6 +1,10 @@
 import { CloudEvent } from 'cloudevents';
-import { AnyMachineSnapshot, AnyActorLogic, ActorOptions, InspectionEvent } from 'xstate';
-
+import {
+  AnyMachineSnapshot,
+  AnyActorLogic,
+  ActorOptions,
+  InspectionEvent,
+} from 'xstate';
 
 /**
  * Represents the version of a state machine in the format '{number}.{number}.{number}'.
@@ -61,7 +65,7 @@ export type OnOrchestrationEvent = (event: CloudEvent<Record<string, any>>) => {
 export type OnOrchestrationState = (
   id: string,
   state: string,
-  snapshot: AnyMachineSnapshot
+  snapshot: AnyMachineSnapshot,
 ) => {
   type: string;
   data?: Record<string, any>;

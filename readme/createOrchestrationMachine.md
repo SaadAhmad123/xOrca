@@ -4,7 +4,7 @@
 /**
  * Creates an orchestration state machine tailored for short-lived serverless environments.
  * The returned machine is intended for execution by the CloudOrchestrationActor.
- * It adheres to the State Machine defined in [XState Documentation](https://xstate.js.org/docs/), 
+ * It adheres to the State Machine defined in [XState Documentation](https://xstate.js.org/docs/),
  * with limitations on invoke and delay functionality, achievable through a microservice in a serverless fleet.
  *
  * @template TContext - The type of the machine context.
@@ -20,18 +20,18 @@ createOrchestrationMachine<TContext>(config: any, options?: any): {
     machine: StateMachine<TContext, any, ...>;
     onOrchestrationEvent: Record<string, OnOrchestrationEvent>;
     onOrchestrationState: Record<string, OnOrchestrationState>;
-} 
+}
 ```
 
 For detailed information, refer to the [Typedocs](https://saadahmad123.github.io/xOrca/functions/createOrchestrationMachine.html).
 
 This function generates an orchestration state machine optimized for execution in ephemeral serverless environments. The resulting machine is designed to be utilized by the CloudOrchestrationActor. It conforms to the State Machine specifications detailed in the [XState Documentation](https://stately.ai/docs), with certain limitations on `invoke` and `delay` functionality. These functionalities can be achieved through a dedicated microservice within a serverless fleet.
 
-
 > Note: The machine comes pre-loaded with two actions: `updateContext`, which takes event data and upserts it into the machine context, and `updateLogs`, which appends logs to the context under the field named `__machineLogs`. It is recommended to use these in events.
 
-## Example 
-```typescript 
+## Example
+
+```typescript
 const machine = createOrchestrationMachine<{bookId: string}>({
     id: 'RegulatedSummaryStateMachine',
     initial: 'FetchData',
