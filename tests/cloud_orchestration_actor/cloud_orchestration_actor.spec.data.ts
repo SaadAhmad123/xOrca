@@ -21,7 +21,7 @@ export const summaryStateMachine =
       }),
       states: {
         FetchData: {
-          emit: 'onFetchData',
+          emit: 'books.com.fetch',
           on: {
             'books.evt.fetch.success': {
               target: 'Summarise',
@@ -96,8 +96,7 @@ export const summaryStateMachine =
     },
     {
       emits: {
-        onFetchData: (id, state, { context }) => ({
-          type: 'books.com.fetch',
+        'books.com.fetch': (id, state, { context }) => ({
           data: {
             bookId: context.bookId,
           },
