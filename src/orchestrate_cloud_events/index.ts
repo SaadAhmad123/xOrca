@@ -37,7 +37,7 @@ import { v4 as uuidv4 } from 'uuid';
  * ];
  * const result = await orchestrateCloudEvents(orchestrationParams, cloudEvents, initialEvents);
  * console.log(result.eventsToEmit); // Array of CloudEvents to be emitted
- * console.log(result.processIdContext); // Map of process IDs to their corresponding contexts
+ * console.log(result.processContext); // Map of process IDs to their corresponding contexts
  * console.log(result.errors); // Array of errors encountered during orchestration
  */
 export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
@@ -73,7 +73,10 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
   }
 
   let eventsToEmit: CloudEvent<Record<string, any>>[] = [];
-  const processContextMap: Record<string, ContextFrom<TLogic>> = {};
+  const processContextMap: Record<string, {
+    status?: string,
+    context?: ContextFrom<TLogic>
+  }> = {};
   const subjectToEvents = events.reduce(
     (acc, cur) => ({
       ...acc,
@@ -154,7 +157,10 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
             try {
               const snapshot = actor.getSnapshot();
               param?.onSnapshot?.(subject, snapshot);
-              processContextMap[subject] = (snapshot as any)?.context;
+              processContextMap[subject] = {
+                context: (snapshot as any)?.context,
+                status: (snapshot as any)?.status
+              };
             } catch (error) {
               console.error(
                 JSON.stringify(
@@ -213,7 +219,10 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
           try {
             const snapshot = actor.getSnapshot();
             param?.onSnapshot?.(id, snapshot);
-            processContextMap[id] = (snapshot as any)?.context;
+            processContextMap[id] = {
+              context: (snapshot as any)?.context,
+              status: (snapshot as any)?.status,
+            };
           } catch (error) {
             console.error(
               JSON.stringify(
@@ -238,7 +247,7 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
 
   return {
     eventsToEmit,
-    processIdContext: processContextMap,
+    processContext: processContextMap,
     errors,
   };
 }

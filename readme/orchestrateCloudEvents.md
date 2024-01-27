@@ -11,7 +11,7 @@
  * @returns A promise resolving to an object containing orchestration results.
  * @property errors - Array of errors encountered during orchestration, including associated events and initialization events.
  * @property eventsToEmit - Cloud events to be emitted as part of orchestration.
- * @property processIdContext - Context information derived from the orchestration process IDs.
+ * @property processContext - Context information derived from the orchestration process IDs.
  */
 async function orchestrateCloudEvents<TLogic>(
   param: OrchestrationConfig,
@@ -24,7 +24,7 @@ async function orchestrateCloudEvents<TLogic>(
     initEvents?: InitialOrchestrationEvent<TLogic>[];
   }[];
   eventsToEmit: CloudEvent<Record<string, any>>[];
-  processIdContext: Record<string, ContextFrom<TLogic>>;
+  processContext: Record<string, ContextFrom<TLogic>>;
 }>;
 ```
 
@@ -77,7 +77,7 @@ async function main() {
   const events: Array<CloudEvent<Record<string, any>>> = []; // List already running orchestration event
   const inits: Array<InitialOrchestrationEvent<any>> = []; // List of initialisations
 
-  const { eventsToEmit, processIdContext, errors } =
+  const { eventsToEmit, processContext, errors } =
     await orchestrateCloudEvents(
       {
         name: stateMachineName,

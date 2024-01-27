@@ -123,3 +123,11 @@ Within the library, various components are meticulously crafted to facilitate se
 - **`CloudOrchestrationActor`** [[See details](https://saadahmad123.github.io/xOrca/classes/CloudOrchestrationActor.html)] A subclass of xState Actor, this component goes beyond the standard features, incorporating properties, methods, and mechanisms essential for efficient execution of state machines within the dynamic context of short-lived serverless environments. Its design caters specifically to the unique demands of orchestrating workflows in such dynamic and resource-constrained settings.
 
 For other functionalities see the [Typedocs](https://saadahmad123.github.io/xOrca/).
+
+## Contributing and Feedback
+
+Contributions are encouraged to expand the library's capabilities, such as adding new storage backends, enhancing locking strategies, and refining documentation. If you have questions, suggestions, or feedback, feel free to open an issue in the GitHub repository.
+
+## License
+
+`xorca` is available under the MIT License. For more details, refer to the [LICENSE.md](/LICENSE.md) file in the project repository.

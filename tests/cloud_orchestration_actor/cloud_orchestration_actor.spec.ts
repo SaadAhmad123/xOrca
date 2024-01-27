@@ -191,7 +191,7 @@ describe('Cloud Orchestration Actor Test', () => {
   });
 
   it('should emit compliance and grounded summary events upon successful summary generation', async () => {
-    const { eventsToEmit, processIdContext } = await orchestrateCloudEvents(
+    const { eventsToEmit, processContext } = await orchestrateCloudEvents(
       orchestrationParams,
       [
         createCloudEvent({
@@ -278,7 +278,7 @@ describe('Cloud Orchestration Actor Test', () => {
   });
 
   it('should emit a no event on if only one parallel state done', async () => {
-    const { eventsToEmit, errors, processIdContext } =
+    const { eventsToEmit, errors, processContext } =
       await orchestrateCloudEvents(orchestrationParams, [
         createCloudEvent({
           type: 'regulations.evt.summaryCompliance.success',
