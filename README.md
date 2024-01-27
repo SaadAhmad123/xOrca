@@ -102,6 +102,10 @@ This system promotes flexibility for growth and iteration. Orchestrators can be 
 
 Additionally, incorporating version control can further enhance the management and scalability of your orchestrations. This allows individual orchestrators to be updated or modified without affecting or disrupting older, live orchestrations within the system. This ensures a smoother transition during upgrades and promotes backward compatibility.
 
+#### Additional Tools
+
+Use [xorca-cloudevent-router](https://www.npmjs.com/package/xorca-cloudevent-router) for micorservices slave to the orchestrator.
+
 ## Core Dependencies
 
 Given that this library functions as a core orchestrator, it is imperative for it to incorporate a robust rules engine and a state management system. In this context, it views a state machine as a pivotal component of the rules engine. To construct and execute this state machine, the library leverages **xstate@5.\***, a highly acclaimed open-source state machine definition and execution tool in TypeScript developed by [stately.ai](https://stately.ai). Recognized for its popularity and effectiveness, xstate ensures a reliable foundation for orchestrating complex workflows.
