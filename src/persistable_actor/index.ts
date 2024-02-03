@@ -73,7 +73,7 @@ export default class PersistableActor<
         retryDelay,
       );
     }
-    const snapshotJson = await storageManager.read(persistancePath, '');
+    const {data: snapshotJson} = await storageManager.read(persistancePath, '');
     const snapshot: Snapshot<unknown> | undefined = snapshotJson
       ? JSON.parse(snapshotJson)
       : undefined;

@@ -1,6 +1,6 @@
 {
   "name": "xorca",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "This is a scalable library for managing state in serverless applications, offering persistence and locking for xState actors.",
   "main": "dist/index.js",
   "license": "MIT",
@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "cloudevents": "^8.0.0",
-    "unified-serverless-storage": "^0.0.7",
+    "unified-serverless-storage": "0.0.9",
     "uuid": "^9.0.1",
     "xstate": "^5.3.1"
   },
