@@ -2506,10 +2506,10 @@ undici-types@~5.26.4:
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-5.26.5.tgz#bcd539893d00b56e964fd2657a4866b221a65617"
   integrity sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==
 
-unified-serverless-storage@0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/unified-serverless-storage/-/unified-serverless-storage-0.0.9.tgz#e8c614bc21b4872257b14ee81168d3c5c4e00fd7"
-  integrity sha512-IiY4hePvJpX59PG9JAmQoV6wzV7buiDqdLdu52hftn2gf8aTADkYG80dIfi7oGtmtZyrK+ThG8a2aHtpeKQGBA==
+unified-serverless-storage@0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/unified-serverless-storage/-/unified-serverless-storage-0.1.1.tgz#70a38f1972b8f9c0c6e87c5ad4dbea8679711725"
+  integrity sha512-3beerX3A9w074Qj1oBDBSIRlGxoKwSRHHy0GOR3PiAGp6Q4IQvH5VRkUw0m8J09eObURQ6IhSgoKW4sg/RfdYg==
   dependencies:
     aws-sdk "^2.1478.0"
 
