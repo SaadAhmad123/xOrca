@@ -8,7 +8,7 @@
     "esModuleInterop": true, // Enables CommonJS/AMD/UMD module interop
     "skipLibCheck": true, // Skip type checking of all declaration files
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
   },
   "include": [
     "src/**/*.ts", // Include all TypeScript files in the 'src' directory
@@ -17,12 +17,12 @@
     "tests/persistable_actor/persistable_actor.spec.data.ts",
     "tests/cloud_orchestration_actor/cloud_orchestration_actor.spec.ts",
     "tests/cloud_orchestration_actor/cloud_orchestration_actor.spec.data.ts",
-    "tests/utils.spec.ts"
+    "tests/utils.spec.ts",
   ],
   "exclude": [
     "node_modules", // your existing exclude pattern
     "**/*.spec.ts", // this line will exclude all .spec.ts files
     "**/*.spec.data.ts", // this line will exclude all .spec.data.ts files
-    "**/*.spec.lib.ts" // this line will exclude all .spec.lib.ts files
-  ]
+    "**/*.spec.lib.ts", // this line will exclude all .spec.lib.ts files
+  ],
 }

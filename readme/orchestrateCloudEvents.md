@@ -77,27 +77,26 @@ async function main() {
   const events: Array<CloudEvent<Record<string, any>>> = []; // List already running orchestration event
   const inits: Array<InitialOrchestrationEvent<any>> = []; // List of initialisations
 
-  const { eventsToEmit, processContext, errors } =
-    await orchestrateCloudEvents(
-      {
-        name: stateMachineName,
-        statemachine: [
-          {
-            version: '0.0.1',
-            orchestrationMachine: machine,
-          },
-        ],
-        storageManager: store,
-        // Optional
-        locking: 'write',
-        // Optional
-        onSnapshot: (...args) => {
-          console.log({ ...args });
+  const { eventsToEmit, processContext, errors } = await orchestrateCloudEvents(
+    {
+      name: stateMachineName,
+      statemachine: [
+        {
+          version: '0.0.1',
+          orchestrationMachine: machine,
         },
+      ],
+      storageManager: store,
+      // Optional
+      locking: 'write',
+      // Optional
+      onSnapshot: (...args) => {
+        console.log({ ...args });
       },
-      events,
-      inits,
-    );
+    },
+    events,
+    inits,
+  );
 
   return { eventsToEmit };
 }

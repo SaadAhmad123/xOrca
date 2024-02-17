@@ -73,10 +73,13 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
   }
 
   let eventsToEmit: CloudEvent<Record<string, any>>[] = [];
-  const processContextMap: Record<string, {
-    status?: string,
-    context?: ContextFrom<TLogic>
-  }> = {};
+  const processContextMap: Record<
+    string,
+    {
+      status?: string;
+      context?: ContextFrom<TLogic>;
+    }
+  > = {};
   const subjectToEvents = events.reduce(
     (acc, cur) => ({
       ...acc,
@@ -159,7 +162,7 @@ export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
               param?.onSnapshot?.(subject, snapshot);
               processContextMap[subject] = {
                 context: (snapshot as any)?.context,
-                status: (snapshot as any)?.status
+                status: (snapshot as any)?.status,
               };
             } catch (error) {
               console.error(

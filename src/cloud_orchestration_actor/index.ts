@@ -93,13 +93,12 @@ export default class CloudOrchestrationActor<
     snapshot: AnyMachineSnapshot,
   ) {
     const orchEvts = pathsToUpdate
-      .map(
-        (item) =>
-          this.middleware?.onOrchestrationState?.[item]?.(
-            this._id,
-            item,
-            snapshot,
-          ),
+      .map((item) =>
+        this.middleware?.onOrchestrationState?.[item]?.(
+          this._id,
+          item,
+          snapshot,
+        ),
       )
       .map((item) =>
         item

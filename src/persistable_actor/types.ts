@@ -21,11 +21,11 @@ export type PersistableActorInput<
    * The storage manager responsible for persisting the state of the orchestration.
    * Should implement the `ILockableStorageManager` interface for concurrent access control.
    * This is governed by the npm package `unified-serverless-storage` [see here](https://www.npmjs.com/package/unified-serverless-storage#usage-example).
-   * 
+   *
    * Note: The storageManager read method must return the snapshot, as JSON string, of the machine
    * and the write function must be able to recieve and save the data passed to it as string. This string
    * is the snapshot of the machine in JSON string format.
-   * 
+   *
    * @example
    * // Example storage manager implementation.
    * storageManager: myLockableStorageManager
