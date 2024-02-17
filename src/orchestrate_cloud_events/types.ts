@@ -37,7 +37,7 @@ export interface IOrchestrateCloudEvents<TLogic extends AnyActorLogic> {
    * The orchestrator's project-wide unique name, providing a distinctive identifier within the project context.
    * @example
    * // Example orchestrator name.
-   * name: "SummaryStateMachine"
+   * name: "summary"
    */
   name: string;
 

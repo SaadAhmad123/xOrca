@@ -147,7 +147,6 @@ export const assignLogsToContext = assign({
       {
         cloudeventId: (ce as any)?.id,
         cloudevent: ce,
-        event: eventLog,
         context: contextToLog,
         timestamp: Date.now(),
         isoTime: new Date().toISOString(),

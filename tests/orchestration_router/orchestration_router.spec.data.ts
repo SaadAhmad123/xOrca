@@ -25,11 +25,11 @@ export const summaryStateMachine =
           on: {
             'evt.book.fetch.success': {
               target: 'Summarise',
-              actions: ['updateContext'],
+              actions: ['updateContext', 'updateLogs'],
             },
             'books.evt.fetch.error': {
               target: 'Error',
-              actions: ['updateContext'],
+              actions: ['updateContext', 'updateLogs'],
             },
           },
         },
@@ -38,11 +38,11 @@ export const summaryStateMachine =
           on: {
             'evt.gpt.summary.success': {
               target: 'Regulate',
-              actions: ['updateContext'],
+              actions: ['updateContext', 'updateLogs'],
             },
             'evt.gpt.summary.error': {
               target: 'Error',
-              actions: ['updateContext'],
+              actions: ['updateContext', 'updateLogs'],
             },
           },
         },
@@ -57,11 +57,11 @@ export const summaryStateMachine =
                   on: {
                     'evt.regulations.grounded.success': {
                       target: 'Done',
-                      actions: ['updateContext'],
+                      actions: ['updateContext', 'updateLogs'],
                     },
                     'evt.regulations.grounded.error': {
                       target: 'Done',
-                      actions: ['updateContext'],
+                      actions: ['updateContext', 'updateLogs'],
                     },
                   },
                 },
@@ -76,11 +76,11 @@ export const summaryStateMachine =
                   on: {
                     'evt.regulations.compliant.success': {
                       target: 'Done',
-                      actions: ['updateContext'],
+                      actions: ['updateContext', 'updateLogs'],
                     },
                     'evt.regulations.compliant.error': {
                       target: 'Done',
-                      actions: ['updateContext'],
+                      actions: ['updateContext', 'updateLogs'],
                     },
                   },
                 },

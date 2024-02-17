@@ -35,7 +35,20 @@ import {
   OrchestrationMachine,
 } from './create_orchestration_machine/types';
 
+import OrchestrationRouter from './orchestration_router';
+import {
+  IOrchestrationRouter,
+  OrchestrationRouterResponse,
+} from './orchestration_router/types';
+import { createOrchestrationRouter } from './orchestration_router/create_orchestration_router';
+import { createOrchestrationInitHandler } from './orchestration_router/init_handler';
+import { createOrchestrationHandler } from './orchestration_router/orchestration_handler';
+
 export {
+  createOrchestrationRouter,
+  OrchestrationRouter,
+  createOrchestrationInitHandler,
+  createOrchestrationHandler,
   PersistableActor,
   CloudOrchestrationActor,
   withPersistableActor,
@@ -64,4 +77,6 @@ export {
   OrchestrationStateConfig,
   CreateOrchestrationMachineOptions,
   OrchestrationMachine,
+  IOrchestrationRouter,
+  OrchestrationRouterResponse as OrchestrationProcessResponse,
 };
