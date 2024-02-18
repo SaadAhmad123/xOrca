@@ -41,10 +41,11 @@ import { assignEventDataToContext, assignLogsToContext } from '../utils';
  *        emit: 'cmd.book.fetch',
  *        on: {
  *          'evt.book.fetch.success': {
+ *            transformer: 'evt.book.fetch.success', // The key of the transformer in the transformers dict
  *            target: 'Summarise',
  *            actions: ['updateContext', 'updateLogs'],
  *          },
- *          'books.evt.fetch.error': {
+ *          'evt.book.fetch.error': {
  *            target: 'Error',
  *            actions: ['updateContext', 'updateLogs'],
  *          },
@@ -149,8 +150,7 @@ import { assignEventDataToContext, assignLogsToContext } from '../utils';
  *  },
  *);
  * ```
- */
-export function createOrchestrationMachine<
+ */export function createOrchestrationMachine<
   TContext extends Record<string, any>,
 >(
   config: OrchestrationMachineConfig<TContext>,

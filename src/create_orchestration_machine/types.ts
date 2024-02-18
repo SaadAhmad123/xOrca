@@ -292,7 +292,8 @@ export type CreateOrchestrationMachineOptions<
   /**
    * Dictionary containing transformers for CloudEvent data when events are received.
    * Defines functions responsible for transforming CloudEvent data upon receiving events.
-   * The keys in this dictionary correspond to event types, and the values are functions of type `OnOrchestrationEventTransformer`.
+   * The keys in this dictionary correspond to the value of the `transformer` field 
+   * in the event of the `on` clause of the state machine.
    */
   transformers?: Record<
     OrchestrationMachineAllowedStringKeys,
