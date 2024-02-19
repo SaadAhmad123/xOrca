@@ -71,11 +71,17 @@ export function makeOnOrchestrationEvent<TContext extends Record<string, any>>(
           ],
       )
       .filter(([_, value]) => Boolean(value))
-      .map(([key, value]) => ({
-        [key]: ((event) => ({
-          type: event.type,
-          data: value?.(event) || event.data || {},
-        })) as OnOrchestrationEvent,
-      })),
+      .map(([key, value]) => {
+        if (!key) return {};
+        return {
+          [key]: ((event) => {
+            const resp = value?.(event);
+            return {
+              type: resp?.type || event.type,
+              data: resp?.data || event.data || {},
+            };
+          }) as OnOrchestrationEvent,
+        };
+      }),
   ) as Record<string, OnOrchestrationEvent>;
 }

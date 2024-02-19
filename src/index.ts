@@ -44,8 +44,7 @@ import { createOrchestrationRouter } from './orchestration_router/create_orchest
 import { createOrchestrationInitHandler } from './orchestration_router/init_handler';
 import { createOrchestrationHandler } from './orchestration_router/orchestration_handler';
 import { appendPreWriter } from './utils/appendPreWriter';
-
-
+import { createOrchestrationMachineV2 } from './create_orchestration_machine/v2';
 export {
   createOrchestrationRouter,
   OrchestrationRouter,
@@ -57,6 +56,7 @@ export {
   createCloudOrchestrationActor,
   orchestrateCloudEvents,
   createOrchestrationMachine,
+  createOrchestrationMachineV2,
   createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,

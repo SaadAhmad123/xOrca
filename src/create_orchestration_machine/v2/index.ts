@@ -1,4 +1,35 @@
-import { createOrchestrationMachine } from '../../src/create_orchestration_machine';
+import {
+  CreateOrchestrationMachineOptions,
+  OrchestrationMachineConfig,
+  OnOrchestrationStateEmit,
+  OnOrchestrationEventTransformer,
+  OrchestrationMachineAllowedStringKeys,
+} from '../types';
+import { createMachine } from 'xstate';
+import { makeOnOrchestrationEvent, makeOnOrchestrationState } from './utils';
+import { assignEventDataToContext, assignLogsToContext } from '../../utils';
+
+/**
+ * Creates an orchestration state machine designed to run in a short-lived serverless environment.
+ * The machine returned by this function can be used by the `CloudOrchestrationActor` for execution.
+ * This machine adheres to the State Machine defined in XState [XState Documentation](https://stately.ai/docs/machines),
+ * with limitations on `invoke` and `delay` functionality, which can be achieved through a microservice in a serverless fleet.
+ *
+ * There are some helper functions out of the box as well. You can pass these via the `actions` in the events parts (`on`). These are:
+ * - `updateContext` which will update the context of the machine when a new event is processed.
+ * - `updateLogs` which will update the logs of the of machine
+ *
+ * Prohibited context variable name (don't use them or put them in the context):
+ * - `__machineLogs` contains the machine logs upon usage of `updateLogs`
+ * - `__cloudevent` contains the most recent cloudevent used
+ * - `__traceId` contains the string with which you can trace the entire orchestration
+ *
+ * @param config - The orchestration machine definition, specifying its structure and behavior.
+ * @param options - The options for the configuration of the machine, including emits and transformers.
+ * @returns An object containing the created machine, onOrchestrationEvent function, and onOrchestrationState function.
+ *
+ * @example
+ * ```typescript
 import { createOrchestrationMachineV2 } from '../../src/create_orchestration_machine/v2';
 
 type TriState = 'TRUE' | 'FALSE' | 'ERRORED';
@@ -149,3 +180,46 @@ export const summaryStateMachine =
       },
     },
   );
+ * ```
+ */
+export function createOrchestrationMachineV2<
+  TContext extends Record<string, any>,
+>(
+  config: OrchestrationMachineConfig<
+    TContext,
+    | OnOrchestrationStateEmit<
+        TContext,
+        {
+          type: string;
+          data: Record<OrchestrationMachineAllowedStringKeys, any>;
+        }
+      >
+    | string,
+    string | boolean
+  >,
+  options?: CreateOrchestrationMachineOptions<TContext>,
+) {
+  return {
+    machine: createMachine(
+      {
+        ...(config as any),
+        types: {} as {
+          context: TContext;
+        },
+      },
+      {
+        actions: {
+          ...(options?.actions || {}),
+          updateContext: assignEventDataToContext as any,
+          updateLogs: assignLogsToContext as any,
+        },
+        guards: options?.guards,
+      },
+    ),
+    onOrchestrationEvent: makeOnOrchestrationEvent(
+      config,
+      options?.transformers,
+    ),
+    onOrchestrationState: makeOnOrchestrationState(config, options?.emits),
+  };
+}

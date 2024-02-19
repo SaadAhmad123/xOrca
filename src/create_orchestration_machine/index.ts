@@ -150,10 +150,11 @@ import { assignEventDataToContext, assignLogsToContext } from '../utils';
  *  },
  *);
  * ```
- */export function createOrchestrationMachine<
+ */
+export function createOrchestrationMachine<
   TContext extends Record<string, any>,
 >(
-  config: OrchestrationMachineConfig<TContext>,
+  config: OrchestrationMachineConfig<TContext, string, string>,
   options?: CreateOrchestrationMachineOptions<TContext>,
 ) {
   return {

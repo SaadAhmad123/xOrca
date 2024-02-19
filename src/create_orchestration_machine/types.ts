@@ -45,6 +45,8 @@ export type OrchestrationMachineAllowedStringKeys = Exclude<
  */
 export type OrchestrationMachineConfig<
   TContext extends Record<OrchestrationMachineAllowedStringKeys, any>,
+  TEmit extends OnOrchestrationStateEmit<TContext> | string = string,
+  TEventTransformer extends string | boolean = string,
 > = {
   /**
    * The unique identifier for the orchestration machine. Used to distinguish between different machines.
@@ -74,7 +76,7 @@ export type OrchestrationMachineConfig<
    */
   states: Record<
     OrchestrationMachineAllowedStringKeys,
-    OrchestrationStateConfig
+    OrchestrationStateConfig<TContext, TEmit, TEventTransformer>
   >;
 };
 
@@ -97,7 +99,10 @@ export type OrchestrationMachineConfig<
  */
 export type OnOrchestrationEventTransformer = (
   event: CloudEvent<Record<OrchestrationMachineAllowedStringKeys, any>>,
-) => Record<OrchestrationMachineAllowedStringKeys, any>;
+) => {
+  type?: string;
+  data: Record<OrchestrationMachineAllowedStringKeys, any>;
+};
 
 /**
  * Configuration for transitioning between states in an orchestration machine.
@@ -114,7 +119,9 @@ export type OnOrchestrationEventTransformer = (
  * };
  * ```
  */
-export type OrchestrationTransitionConfig = {
+export type OrchestrationTransitionConfig<
+  TEventTransformer extends string | boolean = string,
+> = {
   /**
    * The target state to transition to.
    */
@@ -138,11 +145,11 @@ export type OrchestrationTransitionConfig = {
    */
   description?: string;
   /**
-   * Transformer function name to execute before the event gets executed.
+   * Transformer function name or the function itself to execute before the event gets executed.
    * This function, if defined, allows for the transformation of data or preparation before the actual execution of the transition's actions.
    * It can be used to modify or adapt the event data before it is processed. It is defined in the `transformers` key of the options.
    */
-  transformer?: string;
+  transformer?: TEventTransformer;
 };
 
 /**
@@ -169,14 +176,15 @@ export type OrchestrationTransitionConfig = {
  */
 export type OnOrchestrationStateEmit<
   TContext extends Record<OrchestrationMachineAllowedStringKeys, any>,
+  ReturnType extends Record<string, any> = {
+    type?: string;
+    data: Record<OrchestrationMachineAllowedStringKeys, any>;
+  },
 > = (
   id: string,
   state: string,
   snapshot: MachineSnapshot<TContext, any, any, any, any, any, any>,
-) => {
-  type?: string;
-  data: Record<OrchestrationMachineAllowedStringKeys, any>;
-};
+) => ReturnType;
 
 /**
  * Configuration for an orchestration machine state.
@@ -195,7 +203,11 @@ export type OnOrchestrationStateEmit<
  * };
  * ```
  */
-export type OrchestrationStateConfig = {
+export type OrchestrationStateConfig<
+  TContext extends Record<string, any>,
+  TEmit extends OnOrchestrationStateEmit<TContext> | string = string,
+  TEventTransformer extends string | boolean = string,
+> = {
   /**
    * Type of the state, either 'parallel' or 'final'.
    * For 'parallel' type, multiple states run together simultaneously.
@@ -208,11 +220,11 @@ export type OrchestrationStateConfig = {
    */
   initial?: string;
   /**
-   * Name(s) of the functions to run when this state is reached.
+   * Name of the function or the function to run when this state is reached.
    * Provided in the `emits` key in the options of `createOrchestrationMachine`.
    * These functions represent the behavior or side-effects to perform upon reaching this state.
    */
-  emit?: string;
+  emit?: TEmit;
   /**
    * Name(s) of the functions to run when this state is entered.
    * Provided in the `actions` key in the options of `createOrchestrationMachine`.
@@ -231,7 +243,8 @@ export type OrchestrationStateConfig = {
    */
   on?: Record<
     OrchestrationMachineAllowedStringKeys,
-    OrchestrationTransitionConfig | OrchestrationTransitionConfig[]
+    | OrchestrationTransitionConfig<TEventTransformer>
+    | OrchestrationTransitionConfig<TEventTransformer>[]
   >;
   /**
    * Target state to go to when all parallel states are done (applicable only for 'parallel' type).
@@ -254,7 +267,7 @@ export type OrchestrationStateConfig = {
    */
   states?: Record<
     OrchestrationMachineAllowedStringKeys,
-    OrchestrationStateConfig
+    OrchestrationStateConfig<TContext, TEmit, TEventTransformer>
   >;
 };
 
@@ -292,7 +305,7 @@ export type CreateOrchestrationMachineOptions<
   /**
    * Dictionary containing transformers for CloudEvent data when events are received.
    * Defines functions responsible for transforming CloudEvent data upon receiving events.
-   * The keys in this dictionary correspond to the value of the `transformer` field 
+   * The keys in this dictionary correspond to the value of the `transformer` field
    * in the event of the `on` clause of the state machine.
    */
   transformers?: Record<

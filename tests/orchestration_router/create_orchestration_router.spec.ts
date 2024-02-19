@@ -9,6 +9,7 @@ import { summaryStateMachine } from './orchestration_router.spec.data';
 import { CloudEvent } from 'cloudevents';
 import { v4 as uuidv4 } from 'uuid';
 import * as zod from 'zod';
+import { ILogger } from 'xorca-cloudevent-router';
 
 describe('The orchestration router init handler specs', () => {
   const rootDir = path.join(__dirname, '.statemachine.orchestration');
@@ -30,6 +31,8 @@ describe('The orchestration router init handler specs', () => {
     initialContextZodSchema: zod.object({
       bookId: zod.string().describe('The Book Id to which to react to.'),
     }),
+    logger: async (params: ILogger) =>
+      console.log(JSON.stringify(params, null, 2)),
   };
 
   const createInitEvent = (processId: string) =>
