@@ -100,7 +100,6 @@ export type OrchestrationMachineConfig<
 export type OnOrchestrationEventTransformer = (
   event: CloudEvent<Record<OrchestrationMachineAllowedStringKeys, any>>,
 ) => {
-  type?: string;
   data: Record<OrchestrationMachineAllowedStringKeys, any>;
 };
 

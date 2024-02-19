@@ -121,7 +121,7 @@ export function makeOnOrchestrationEvent<TContext extends Record<string, any>>(
           [key]: ((event) => {
             const resp = value?.(event);
             return {
-              type: resp?.type || event.type,
+              type: event.type,
               data: resp?.data || event.data || {},
             };
           }) as OnOrchestrationEvent,
