@@ -93,7 +93,8 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
           | `xorca.orchestrator.${string}.error`;
         data: Record<string, any>;
         subject?: string;
-        source?: string;
+        source: string;
+        orchestrator: string;
       }[] = [];
       let subject = 'unknown-subject';
       try {
@@ -136,6 +137,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
             data: item.data || {},
             subject: item.subject,
             source: `xorca.orchestrator.${name}`,
+            orchestrator: `xorca.${name}`,
           });
         }
         try {
@@ -158,6 +160,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
           },
           subject,
           source: `xorca.orchestrator.${name}`,
+          orchestrator: `xorca.${name}`,
         });
         await logger({
           type: 'ERROR',

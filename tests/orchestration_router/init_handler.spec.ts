@@ -35,7 +35,11 @@ describe('The orchestration router init handler specs', () => {
   });
 
   afterAll(() => {
-    fs.rmdirSync(rootDir, { recursive: true });
+    try {
+      fs.rmdirSync(rootDir, { recursive: true });
+    } catch (e) {
+      console.error(e)
+    }
   });
 
   it('should initiate a orchestration machine and generate the init events', async () => {
