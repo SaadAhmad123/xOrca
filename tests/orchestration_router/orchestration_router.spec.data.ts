@@ -1,4 +1,3 @@
-import { createOrchestrationMachine } from '../../src/create_orchestration_machine';
 import { createOrchestrationMachineV2 } from '../../src/create_orchestration_machine/v2';
 
 type TriState = 'TRUE' | 'FALSE' | 'ERRORED';
