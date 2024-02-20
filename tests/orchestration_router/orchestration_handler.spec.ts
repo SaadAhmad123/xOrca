@@ -70,6 +70,7 @@ describe('The orchestration router init handler specs', () => {
     expect(responses[0].eventToEmit.type).toBe(
       'sys.xorca.orchestrator.summary.error',
     );
+    console.log(JSON.stringify(responses, null, 2))
     const subject = responses[0]?.eventToEmit?.subject || '';
     responses = await orchestrationHandler.safeCloudevent(
       new CloudEvent<Record<string, any>>({
