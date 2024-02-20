@@ -38,7 +38,7 @@ describe('The orchestration router init handler specs', () => {
     try {
       fs.rmdirSync(rootDir, { recursive: true });
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
   });
 
@@ -66,7 +66,7 @@ describe('The orchestration router init handler specs', () => {
     );
     expect(resp?.eventToEmit?.data?.bookId).toBe('1223.pdf');
     expect(resp?.eventToEmit?.source).toBe(
-      `xorca.initializer.${orchestratorName}`,
+      `xorca.${orchestratorName}`,
     );
     expect(resp?.eventToEmit?.datacontenttype).toBe(
       'application/cloudevents+json; charset=UTF-8',
@@ -116,7 +116,7 @@ describe('The orchestration router init handler specs', () => {
       `An orchestration state with processId=${processId}, orchestration name=${orchestratorName} and machine version=${orchestrationVersion} already exists ==> subject=${makeSubject(processId, orchestratorName, orchestrationVersion)}`,
     );
     expect(resp?.eventToEmit?.source).toBe(
-      `xorca.initializer.${orchestratorName}`,
+      `xorca.${orchestratorName}`,
     );
     expect(resp?.eventToEmit?.datacontenttype).toBe(
       'application/cloudevents+json; charset=UTF-8',

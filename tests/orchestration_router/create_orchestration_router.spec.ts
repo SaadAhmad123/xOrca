@@ -31,8 +31,8 @@ describe('The orchestration router init handler specs', () => {
     initialContextZodSchema: zod.object({
       bookId: zod.string().describe('The Book Id to which to react to.'),
     }),
-    logger: async (params: ILogger) =>
-      console.log(JSON.stringify(params, null, 2)),
+    // logger: async (params: ILogger) =>
+    //   console.log(JSON.stringify(params, null, 2)),
   };
 
   const createInitEvent = (processId: string) =>
@@ -53,7 +53,11 @@ describe('The orchestration router init handler specs', () => {
   const orchestrationRouter = createOrchestrationRouter(params);
 
   afterAll(() => {
-    fs.rmdirSync(rootDir, { recursive: true });
+    try {
+      fs.rmdirSync(rootDir, { recursive: true });
+    } catch (e) {
+      console.error(e)
+    }
   });
 
   it('should initiate and process if a valid event is provided', async () => {

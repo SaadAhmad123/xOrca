@@ -1,4 +1,7 @@
-import { CloudEventHandler } from 'xorca-cloudevent-router';
+import {
+  CloudEventHandler,
+  CloudEventHandlerFunctionOutput,
+} from 'xorca-cloudevent-router';
 import * as zod from 'zod';
 import { AnyActorLogic } from 'xstate';
 import PersistableActor from '../persistable_actor';
@@ -103,16 +106,12 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
         | PersistableActor<TLogic, CloudOrchestrationActor<TLogic>>
         | undefined = undefined;
       const startTime = performance.now();
-      const responses: {
-        type:
-          | 'cmd.{{resource}}'
-          | 'notif.{{resource}}'
-          | `xorca.initializer.${string}.error`;
-        data: Record<string, any>;
-        subject?: string;
-        source: string;
-        orchestrator: string;
-      }[] = [];
+
+      const responses: CloudEventHandlerFunctionOutput<
+        | 'cmd.{{resource}}'
+        | 'notif.{{resource}}'
+        | `xorca.initializer.${string}.error`
+      >[] = [];
       let subject = 'unknown-subject';
       try {
         const { processId, context, version } = data;
@@ -159,8 +158,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
             type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
             data: item.data || {},
             subject: item.subject,
-            source: `xorca.initializer.${name}`,
-            orchestrator: `xorca.${name}`,
+            source: `xorca.${name}`,
           });
         }
         try {
@@ -182,8 +180,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
             errorStack: (e as Error)?.stack,
           },
           subject,
-          source: `xorca.initializer.${name}`,
-          orchestrator: `xorca.${name}`,
+          source: `xorca.${name}`,
         });
         await logger({
           type: 'ERROR',
