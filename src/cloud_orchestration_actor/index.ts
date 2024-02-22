@@ -147,9 +147,10 @@ export default class CloudOrchestrationActor<
     const transformedData =
       this.middleware?.onOrchestrationEvent?.[event.type]?.(event);
     const evt = {
+      ...(transformedData?.data || event.data || {}),
       type: transformedData?.type || event.type,
       __cloudevent: event,
-      ...(transformedData?.data || event.data || {}),
+      __data: (transformedData?.data || event.data || {}),
     } as EventFromLogic<TLogic>;
     const eventVersion: any = (event as any).statemachineversion;
     if (eventVersion && this.stateMachineVersion !== eventVersion) {
