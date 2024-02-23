@@ -5,6 +5,7 @@ import { createOrchestrationInitHandler } from './init_handler';
 import { createOrchestrationHandler } from './orchestration_handler';
 import PersistableActor from '../persistable_actor';
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
+import { createOrchestrationSystemErrorHandler } from './orchestration_system_error_handler';
 
 /**
  * Creates an orchestration router for managing the initialization and handling of orchestrations in xOrca.
@@ -20,6 +21,7 @@ export function createOrchestrationRouter<TLogic extends AnyActorLogic>(
     handlers: [
       createOrchestrationInitHandler(params),
       createOrchestrationHandler(params),
+      createOrchestrationSystemErrorHandler(params),
     ],
   });
 }

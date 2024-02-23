@@ -16,7 +16,7 @@ import { IOrchestrationRouter } from './types';
  *
  * @returns {CloudEventHandler} - Cloud event handler for orchestrating events.
  */
-export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
+export function createOrchestrationSystemErrorHandler<TLogic extends AnyActorLogic>({
   name,
   statemachine,
   storageManager,
@@ -25,7 +25,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
   locking,
 }: IOrchestrationRouter<TLogic>) {
   return new CloudEventHandler<
-    `evt.${string}`,
+    `sys.${string}`,
     | 'cmd.{{resource}}'
     | 'notif.{{resource}}'
     | `xorca.orchestrator.${string}.error`
@@ -35,10 +35,10 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
     name: `xorca.orchestrator.${name}`,
     description: `[xOrca orchestration handler] This handler deals with the orchestration of the events for the orchestrations which have already been initialized`,
     accepts: {
-      type: `evt.{{resource}}`,
+      type: `sys.{{resource}}`,
       description: [
         'The handler listens to the orcehstration events only. ',
-        'These event types are prefixed by `evt.` prefix.',
+        'These event types are prefixed by `sys.` prefix.',
       ].join(''),
       zodSchema: zod.object({}).describe(''),
     },
