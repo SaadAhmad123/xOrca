@@ -57,7 +57,7 @@ export type OrchestrationMachineConfig<
    * Represents the initial data or state of the orchestration machine.
    * It can be a static object or a function that dynamically generates the initial context based on the input parameters.
    */
-  context?: TContext | ((params: { input: any }) => TContext);
+  context?: (params: { input: any }) => TContext;
   /**
    * Initial state if the state type is not 'parallel'.
    * Specifies the initial state that the orchestration machine enters when it is first instantiated.

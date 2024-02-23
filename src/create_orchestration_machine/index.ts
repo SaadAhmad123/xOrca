@@ -35,6 +35,7 @@ import { assignEventDataToContext, assignLogsToContext } from '../utils';
  *    context: ({ input }) => ({
  *      ...(input || {}),
  *      bookId: (input as any).bookId,
+ *      __traceId: input?.__traceId,
  *    }),
  *    states: {
  *      FetchData: {
@@ -164,6 +165,12 @@ export function createOrchestrationMachine<
         types: {} as {
           context: TContext;
         },
+        context: ({input}) => ({
+          __traceId: (input as any)?.__traceId,
+          __machineLogs: [],
+          __cloudevent: undefined,
+          ...(config?.context?.({input}) || {})
+        })
       },
       {
         actions: {

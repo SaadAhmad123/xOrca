@@ -50,6 +50,7 @@ export const summaryStateMachine =
       context: ({ input }) => ({
         ...(input || {}),
         bookId: (input as any).bookId,
+        __traceId: input?.__traceId,
       }),
       states: {
         FetchData: {
@@ -206,6 +207,10 @@ export function createOrchestrationMachineV2<
         types: {} as {
           context: TContext;
         },
+        context: ({input}) => ({
+          __traceId: (input as any)?.__traceId,
+          ...(config?.context?.({input}) || {})
+        })
       },
       {
         actions: {
