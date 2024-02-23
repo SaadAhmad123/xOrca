@@ -18,6 +18,7 @@ import { assignEventDataToContext, assignLogsToContext, assignOrchestrationTimeT
  * There are some helper functions out of the box as well. You can pass these via the `actions` in the events parts (`on`). These are:
  * - `updateContext` which will update the context of the machine when a new event is processed.
  * - `updateLogs` which will update the logs of the of machine
+ * - `updateCheckpoint` which will log time of the event processed by the orchestration
  *
  * Prohibited context variable name (don't use them or put them in the context):
  * - `__machineLogs` contains the machine logs upon usage of `updateLogs`
@@ -216,6 +217,7 @@ export function createOrchestrationMachineV2<
             __cloudevent: undefined,
             __orchestrationTime: [
               {
+                event_type: 'init',
                 start: startTime,
                 checkpoint: startTime,
                 elapsed: 0,

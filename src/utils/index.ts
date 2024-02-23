@@ -160,13 +160,14 @@ export const assignLogsToContext = assign({
  * and log the checkpoint
  */
 export const assignOrchestrationTimeToContext = assign({
-  __orchestrationTime: ({ context }) => {
+  __orchestrationTime: ({ event, context }) => {
     const { __orchestrationTime } = context || {};
     const startTime = __orchestrationTime?.[0]?.start || Date.now()
     const checkpointTime = Date.now();
     return [
       ...(__orchestrationTime || []),
       {
+        event_type: event.type, 
         start: startTime,
         checkpoint: checkpointTime,
         elapsed: checkpointTime - startTime,
