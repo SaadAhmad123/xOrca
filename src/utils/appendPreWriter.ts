@@ -20,6 +20,7 @@ export function appendPreWriter(
   name?: string;
   processId?: string;
   version?: string;
+  orchestrationCheckpoints?: string
 } {
   try {
     const { name, processId, version } = parseSubject(
@@ -33,7 +34,7 @@ export function appendPreWriter(
           {},
           ...Object.entries((context || {}) as Record<string, any>)
             .filter(
-              ([key, _]) => !['__cloudevent', '__machineLogs'].includes(key),
+              ([key, _]) => !['__cloudevent', '__machineLogs', '__traceId', '__orchestrationTime'].includes(key),
             )
             .map(([key, value]) => ({ [key]: value })),
         ),
@@ -42,6 +43,7 @@ export function appendPreWriter(
       name,
       processId,
       version,
+      orchestrationCheckpoints: JSON.stringify(context?.__orchestrationTime || [])
     };
   } catch (e) {
     console.error({ data, path, e });
