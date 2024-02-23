@@ -156,6 +156,26 @@ export const assignLogsToContext = assign({
 });
 
 /**
+ * A action which can update the orchestration time 
+ * and log the checkpoint
+ */
+export const assignOrchestrationTimeToContext = assign({
+  __orchestrationTime: ({ context }) => {
+    const { __orchestrationTime } = context || {};
+    const startTime = __orchestrationTime?.[0]?.start || Date.now()
+    const checkpointTime = Date.now();
+    return [
+      ...(__orchestrationTime || []),
+      {
+        start: startTime,
+        checkpoint: checkpointTime,
+        elapsed: checkpointTime - startTime,
+      },
+    ];
+  },
+});
+
+/**
  * Check if an object is a dictionary-like object.
  *
  * @param obj - The object to check.

@@ -18,6 +18,7 @@ import { PersistableActorInput } from './persistable_actor/types';
 import {
   createCloudEvent,
   assignEventDataToContext,
+  assignOrchestrationTimeToContext,
   assignLogsToContext,
   makeSubject,
   parseSubject,
@@ -60,6 +61,7 @@ export {
   createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,
+  assignOrchestrationTimeToContext,
   appendPreWriter,
   makeSubject as makeCloudEventSubject,
   parseSubject as parseCloudEventSubject,

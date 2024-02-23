@@ -7,7 +7,7 @@ import {
 } from '../types';
 import { createMachine } from 'xstate';
 import { makeOnOrchestrationEvent, makeOnOrchestrationState } from './utils';
-import { assignEventDataToContext, assignLogsToContext } from '../../utils';
+import { assignEventDataToContext, assignLogsToContext, assignOrchestrationTimeToContext } from '../../utils';
 
 /**
  * Creates an orchestration state machine designed to run in a short-lived serverless environment.
@@ -23,6 +23,7 @@ import { assignEventDataToContext, assignLogsToContext } from '../../utils';
  * - `__machineLogs` contains the machine logs upon usage of `updateLogs`
  * - `__cloudevent` contains the most recent cloudevent used
  * - `__traceId` contains the string with which you can trace the entire orchestration
+ * - `__orchestrationTime` contains the list of all checkpoint times and elapsed times
  *
  * @param config - The orchestration machine definition, specifying its structure and behavior.
  * @param options - The options for the configuration of the machine, including emits and transformers.
@@ -207,16 +208,29 @@ export function createOrchestrationMachineV2<
         types: {} as {
           context: TContext;
         },
-        context: ({input}) => ({
-          __traceId: (input as any)?.__traceId,
-          ...(config?.context?.({input}) || {})
-        })
+        context: ({input}) => {
+          const startTime = Date.now()
+          return {
+            __traceId: (input as any)?.__traceId,
+            __machineLogs: [],
+            __cloudevent: undefined,
+            __orchestrationTime: [
+              {
+                start: startTime,
+                checkpoint: startTime,
+                elapsed: 0,
+              }
+            ],
+            ...(config?.context?.({input}) || {})
+          }
+        }
       },
       {
         actions: {
           ...(options?.actions || {}),
           updateContext: assignEventDataToContext as any,
           updateLogs: assignLogsToContext as any,
+          updateCheckpoint: assignOrchestrationTimeToContext as any,
         },
         guards: options?.guards,
       },
