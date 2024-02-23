@@ -44,7 +44,7 @@ import {
 import { createOrchestrationRouter } from './orchestration_router/create_orchestration_router';
 import { createOrchestrationInitHandler } from './orchestration_router/init_handler';
 import { createOrchestrationHandler } from './orchestration_router/orchestration_handler';
-import { appendPreWriter } from './utils/appendPreWriter';
+import { appendPreWriter, PreWriterRecord } from './utils/appendPreWriter';
 import { createOrchestrationMachineV2 } from './create_orchestration_machine/v2';
 export {
   createOrchestrationRouter,
@@ -63,6 +63,7 @@ export {
   assignLogsToContext,
   assignOrchestrationTimeToContext,
   appendPreWriter,
+  PreWriterRecord,
   makeSubject as makeCloudEventSubject,
   parseSubject as parseCloudEventSubject,
   PersistableActorInput,
