@@ -53,6 +53,10 @@ export type OrchestrationMachineConfig<
    */
   id: string;
   /**
+   * The description of the machine
+   */
+  description?: string;
+  /**
    * Initial context or a function to generate context based on input.
    * Represents the initial data or state of the orchestration machine.
    * It can be a static object or a function that dynamically generates the initial context based on the input parameters.
