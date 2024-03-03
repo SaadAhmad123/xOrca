@@ -2,13 +2,14 @@ import { CloudEvent } from 'cloudevents';
 import {
   MachineSnapshot,
   InternalMachineImplementations,
-  AnyActor,
   AnyActorLogic,
 } from 'xstate';
 import {
   OnOrchestrationEvent,
   OnOrchestrationState,
 } from '../cloud_orchestration_actor/types';
+import * as zod from 'zod';
+import { JsonSchema7Type } from 'zod-to-json-schema';
 
 /**
  * Type representing possible states in an orchestration machine.
@@ -45,7 +46,7 @@ export type OrchestrationMachineAllowedStringKeys = Exclude<
  */
 export type OrchestrationMachineConfig<
   TContext extends Record<OrchestrationMachineAllowedStringKeys, any>,
-  TEmit extends OnOrchestrationStateEmit<TContext> | string = string,
+  TEmit extends string = string,
   TEventTransformer extends string | boolean = string,
 > = {
   /**
@@ -130,6 +131,11 @@ export type OrchestrationTransitionConfig<
    */
   target: string;
   /**
+   * The schema of the event that is expected
+   * to trigger the next state
+   */
+  eventSchema?: EventSchema<string | undefined>;
+  /**
    * Name(s) of the functions to execute when the event happens.
    *   Provide in the 'actions' key in the options of `createOrchestrationMachine`.
    *   These functions represent the behavior or side-effects to perform upon the event triggering the transition.
@@ -179,8 +185,9 @@ export type OrchestrationTransitionConfig<
  */
 export type OnOrchestrationStateEmit<
   TContext extends Record<OrchestrationMachineAllowedStringKeys, any>,
+  TEmit extends string = string,
   ReturnType extends Record<string, any> = {
-    type?: string;
+    type: TEmit;
     data: Record<OrchestrationMachineAllowedStringKeys, any>;
   },
 > = (
@@ -188,6 +195,15 @@ export type OnOrchestrationStateEmit<
   state: string,
   snapshot: MachineSnapshot<TContext, any, any, any, any, any, any>,
 ) => ReturnType;
+
+/**
+ * The event schema for the input and output
+ * of the orchestration machine
+ */
+export type EventSchema<TEventType extends string | undefined = string> = {
+  type: TEventType;
+  data: zod.ZodObject<any>;
+};
 
 /**
  * Configuration for an orchestration machine state.
@@ -208,7 +224,7 @@ export type OnOrchestrationStateEmit<
  */
 export type OrchestrationStateConfig<
   TContext extends Record<string, any>,
-  TEmit extends OnOrchestrationStateEmit<TContext> | string = string,
+  TEmit extends string = string,
   TEventTransformer extends string | boolean = string,
 > = {
   /**
@@ -227,7 +243,13 @@ export type OrchestrationStateConfig<
    * Provided in the `emits` key in the options of `createOrchestrationMachine`.
    * These functions represent the behavior or side-effects to perform upon reaching this state.
    */
-  emit?: TEmit;
+  emit?: OnOrchestrationStateEmit<TContext, TEmit> | TEmit;
+
+  /**
+   * The schema of the emit this state emits. It helps
+   * in documentation
+   */
+  eventSchema?: EventSchema<TEmit>;
   /**
    * Name(s) of the functions to run when this state is entered.
    * Provided in the `actions` key in the options of `createOrchestrationMachine`.
@@ -303,7 +325,14 @@ export type CreateOrchestrationMachineOptions<
    */
   emits?: Record<
     OrchestrationMachineAllowedStringKeys,
-    OnOrchestrationStateEmit<TContext>
+    OnOrchestrationStateEmit<
+      TContext,
+      string,
+      {
+        type?: string;
+        data: Record<OrchestrationMachineAllowedStringKeys, any>;
+      }
+    >
   >;
   /**
    * Dictionary containing transformers for CloudEvent data when events are received.
@@ -350,4 +379,13 @@ export type OrchestrationMachine<TLogic extends AnyActorLogic> = {
    * emit an event when a certain state is reached.
    */
   onOrchestrationState: Record<string, OnOrchestrationState>;
+
+  /**
+   * Gets the events which are expected and emitted by the machine
+   * @returns 
+   */
+  getMachineEvents?: () => ({
+    emits: { type: string; data?: JsonSchema7Type };
+    accepts: { type: string; data?: JsonSchema7Type }[];
+  }[])
 };

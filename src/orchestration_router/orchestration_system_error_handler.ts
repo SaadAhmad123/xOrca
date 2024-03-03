@@ -16,7 +16,9 @@ import { IOrchestrationRouter } from './types';
  *
  * @returns {CloudEventHandler} - Cloud event handler for orchestrating events.
  */
-export function createOrchestrationSystemErrorHandler<TLogic extends AnyActorLogic>({
+export function createOrchestrationSystemErrorHandler<
+  TLogic extends AnyActorLogic,
+>({
   name,
   statemachine,
   storageManager,

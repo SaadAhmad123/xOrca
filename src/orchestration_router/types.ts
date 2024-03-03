@@ -64,7 +64,6 @@ export interface IBasicOrchestrationRouter<TLogic extends AnyActorLogic> {
   onSnapshot?: (processId: string, snapshot: SnapshotFrom<TLogic>) => void;
 }
 
-
 /**
  * Extends the basic orchestration router interface with additional configuration options,
  * including a description, logging capabilities, initial context schema validation, and
@@ -72,7 +71,8 @@ export interface IBasicOrchestrationRouter<TLogic extends AnyActorLogic> {
  *
  * @template TLogic - Specifies the logic type governing the orchestration's behavior.
  */
-export interface IOrchestrationRouter<TLogic extends AnyActorLogic> extends IBasicOrchestrationRouter<TLogic> {
+export interface IOrchestrationRouter<TLogic extends AnyActorLogic>
+  extends IBasicOrchestrationRouter<TLogic> {
   /**
    * Optional descriptive text about the orchestration router.
    */

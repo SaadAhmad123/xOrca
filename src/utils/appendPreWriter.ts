@@ -60,8 +60,7 @@ export type PreWriterRecord = {
    * These logs include events emitted by the orchestrator, providing insight into its operational behavior.
    */
   orchestrationLogs?: string;
-}
-
+};
 
 /**
  * Use this as a append pre writer for the unified storage manager
@@ -73,10 +72,7 @@ export type PreWriterRecord = {
  * @param path - The key against which this is stored
  * @returns
  */
-export function appendPreWriter(
-  data: string,
-  path: string,
-): PreWriterRecord {
+export function appendPreWriter(data: string, path: string): PreWriterRecord {
   try {
     const { name, processId, version } = parseSubject(
       path.replace('.json', ''),
@@ -90,7 +86,13 @@ export function appendPreWriter(
           {},
           ...Object.entries((context || {}) as Record<string, any>)
             .filter(
-              ([key, _]) => !['__cloudevent', '__machineLogs', '__traceId', '__orchestrationTime'].includes(key),
+              ([key, _]) =>
+                ![
+                  '__cloudevent',
+                  '__machineLogs',
+                  '__traceId',
+                  '__orchestrationTime',
+                ].includes(key),
             )
             .map(([key, value]) => ({ [key]: value })),
         ),
@@ -100,7 +102,9 @@ export function appendPreWriter(
       name,
       processId,
       version,
-      orchestrationCheckpoints: JSON.stringify(context?.__orchestrationTime || [])
+      orchestrationCheckpoints: JSON.stringify(
+        context?.__orchestrationTime || [],
+      ),
     };
   } catch (e) {
     console.error({ data, path, e });

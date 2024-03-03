@@ -56,7 +56,7 @@ describe('The orchestration router init handler specs', () => {
     try {
       fs.rmdirSync(rootDir, { recursive: true });
     } catch (e) {
-      console.error(e)
+      console.error(e);
     }
   });
 

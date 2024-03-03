@@ -146,9 +146,7 @@ describe('The orchestration router init handler specs', () => {
     expect(resp?.eventToEmit?.data?.errorMessage).toBe(
       '[CloudEventHandler][cloudevent] Invalid handler input data. The response data does not match type=xorca.summary.start expected data shape',
     );
-    expect(resp?.eventToEmit?.source).toBe(
-      `xorca.${orchestratorName}.start`,
-    );
+    expect(resp?.eventToEmit?.source).toBe(`xorca.${orchestratorName}.start`);
     expect(resp?.eventToEmit?.datacontenttype).toBe(
       'application/cloudevents+json; charset=UTF-8',
     );

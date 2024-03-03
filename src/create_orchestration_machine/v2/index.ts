@@ -1,13 +1,22 @@
 import {
   CreateOrchestrationMachineOptions,
+  OrchestrationMachine,
   OrchestrationMachineConfig,
-  OnOrchestrationStateEmit,
-  OnOrchestrationEventTransformer,
-  OrchestrationMachineAllowedStringKeys,
 } from '../types';
-import { createMachine } from 'xstate';
-import { makeOnOrchestrationEvent, makeOnOrchestrationState } from './utils';
-import { assignEventDataToContext, assignLogsToContext, assignOrchestrationTimeToContext } from '../../utils';
+import { AnyActorLogic, createMachine } from 'xstate';
+import {
+  getObjectOnPath,
+  makeOnOrchestrationEvent,
+  makeOnOrchestrationState,
+  safeZodToJSON,
+} from './utils';
+import {
+  assignEventDataToContext,
+  assignLogsToContext,
+  assignOrchestrationTimeToContext,
+  getAllPaths,
+} from '../../utils';
+import { JsonSchema7Type } from 'zod-to-json-schema';
 
 /**
  * Creates an orchestration state machine designed to run in a short-lived serverless environment.
@@ -33,6 +42,7 @@ import { assignEventDataToContext, assignLogsToContext, assignOrchestrationTimeT
  * @example
  * ```typescript
 import { createOrchestrationMachineV2 } from '../../src/create_orchestration_machine/v2';
+import * as zod from 'zod';
 
 type TriState = 'TRUE' | 'FALSE' | 'ERRORED';
 
@@ -52,10 +62,15 @@ export const summaryStateMachine =
       context: ({ input }) => ({
         ...(input || {}),
         bookId: (input as any).bookId,
-        __traceId: input?.__traceId,
       }),
       states: {
         FetchData: {
+          eventSchema: {
+            type: 'cmd.book.fetch',
+            data: zod.object({
+              bookId: zod.string(),
+            }),
+          },
           emit: (id, state, { context }) => ({
             type: 'cmd.book.fetch',
             data: {
@@ -64,11 +79,23 @@ export const summaryStateMachine =
           }),
           on: {
             'evt.book.fetch.success': {
+              eventSchema: {
+                type: 'evt.book.fetch.success',
+                data: zod.object({
+                  bookData: zod.string().array(),
+                }),
+              },
               transformer: false,
               target: 'Summarise',
               actions: ['updateContext', 'updateLogs'],
             },
             'books.evt.fetch.error': {
+              eventSchema: {
+                type: 'books.evt.fetch.error',
+                data: zod.object({
+                  bookData: zod.string().array(),
+                }),
+              },
               target: 'Error',
               actions: ['updateContext', 'updateLogs'],
             },
@@ -76,12 +103,30 @@ export const summaryStateMachine =
         },
         Summarise: {
           emit: 'cmd.gpt.summary',
+          eventSchema: {
+            type: 'cmd.gpt.summary',
+            data: zod.object({
+              content: zod.string().array(),
+            }),
+          },
           on: {
             'evt.gpt.summary.success': {
+              eventSchema: {
+                type: 'evt.gpt.summary.success',
+                data: zod.object({
+                  summary: zod.string(),
+                }),
+              },
               target: 'Regulate',
               actions: ['updateContext', 'updateLogs'],
             },
             'evt.gpt.summary.error': {
+              eventSchema: {
+                type: 'evt.gpt.summary.error',
+                data: zod.object({
+                  error: zod.string(),
+                }),
+              },
               target: 'Error',
               actions: ['updateContext', 'updateLogs'],
             },
@@ -95,13 +140,32 @@ export const summaryStateMachine =
               states: {
                 Check: {
                   emit: 'cmd.regulations.grounded',
+                  eventSchema: {
+                    type: 'cmd.regulations.grounded',
+                    data: zod.object({
+                      content: zod.string().array(),
+                      summary: zod.string(),
+                    }),
+                  },
                   on: {
                     'evt.regulations.grounded.success': {
                       transformer: 'onGroundedSuccess',
+                      eventSchema: {
+                        type: 'evt.regulations.grounded.success',
+                        data: zod.object({
+                          grounded: zod.boolean(),
+                        }),
+                      },
                       target: 'Done',
                       actions: ['updateContext', 'updateLogs'],
                     },
                     'evt.regulations.grounded.error': {
+                      eventSchema: {
+                        type: 'evt.regulations.grounded.error',
+                        data: zod.object({
+                          error: zod.string(),
+                        }),
+                      },
                       target: 'Done',
                       actions: ['updateContext', 'updateLogs'],
                     },
@@ -115,13 +179,33 @@ export const summaryStateMachine =
               states: {
                 Check: {
                   emit: 'cmd.regulations.compliant',
+                  eventSchema: {
+                    type: 'cmd.regulations.compliant',
+                    data: zod.object({
+                      content: zod.string().array(),
+                      summary: zod.string(),
+                    }),
+                  },
                   on: {
                     'evt.regulations.compliant.success': {
                       transformer: true,
+                      eventSchema: {
+                        type: 'evt.regulations.compliant.success',
+                        data: zod.object({
+                          content: zod.string().array(),
+                          summary: zod.string(),
+                        }),
+                      },
                       target: 'Done',
                       actions: ['updateContext', 'updateLogs'],
                     },
                     'evt.regulations.compliant.error': {
+                      eventSchema: {
+                        type: 'evt.regulations.compliant.error',
+                        data: zod.object({
+                          error: zod.string(),
+                        }),
+                      },
                       target: 'Done',
                       actions: ['updateContext', 'updateLogs'],
                     },
@@ -187,19 +271,9 @@ export const summaryStateMachine =
  */
 export function createOrchestrationMachineV2<
   TContext extends Record<string, any>,
+  TEmit extends string = string,
 >(
-  config: OrchestrationMachineConfig<
-    TContext,
-    | OnOrchestrationStateEmit<
-        TContext,
-        {
-          type: string;
-          data: Record<OrchestrationMachineAllowedStringKeys, any>;
-        }
-      >
-    | string,
-    string | boolean
-  >,
+  config: OrchestrationMachineConfig<TContext, TEmit, string | boolean>,
   options?: CreateOrchestrationMachineOptions<TContext>,
 ) {
   return {
@@ -209,8 +283,8 @@ export function createOrchestrationMachineV2<
         types: {} as {
           context: TContext;
         },
-        context: ({input}) => {
-          const startTime = Date.now()
+        context: ({ input }) => {
+          const startTime = Date.now();
           return {
             __traceId: (input as any)?.__traceId,
             __machineLogs: [],
@@ -221,11 +295,11 @@ export function createOrchestrationMachineV2<
                 start: startTime,
                 checkpoint: startTime,
                 elapsed: 0,
-              }
+              },
             ],
-            ...(config?.context?.({input}) || {})
-          }
-        }
+            ...(config?.context?.({ input }) || {}),
+          };
+        },
       },
       {
         actions: {
@@ -242,5 +316,32 @@ export function createOrchestrationMachineV2<
       options?.transformers,
     ),
     onOrchestrationState: makeOnOrchestrationState(config, options?.emits),
-  };
+    getMachineEvents: () =>
+      getAllPaths(config)
+        .filter(
+          (item) =>
+            item.path[item.path.length - 2] === 'eventSchema' &&
+            item.path[item.path.length - 1] === 'type',
+        )
+        .filter((item) => !item.path.includes('on'))
+        .map((item) => item.path.slice(0, -2))
+        .map((item) => {
+          const obj = getObjectOnPath(item, config);
+          return {
+            emits: {
+              type: obj?.eventSchema?.type || '',
+              data: safeZodToJSON(obj?.eventSchema?.data),
+            },
+            accepts: Object.entries((obj?.on || {}) as Record<string, any>).map(
+              ([key, value]) => ({
+                type: value?.eventSchema?.type || key,
+                data: safeZodToJSON(value?.eventSchema?.data),
+              }),
+            ),
+          };
+        }) as {
+        emits: { type: string; data?: JsonSchema7Type };
+        accepts: { type: string; data?: JsonSchema7Type }[];
+      }[],
+  } as OrchestrationMachine<AnyActorLogic>;
 }

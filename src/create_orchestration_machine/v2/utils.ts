@@ -9,26 +9,23 @@ import {
   OrchestrationMachineAllowedStringKeys,
   OrchestrationMachineConfig,
 } from '../types';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const isFunction = (variable: any) => typeof variable === 'function';
 const isBoolean = (variable: any) => typeof variable === 'boolean';
 
 export function makeOnOrchestrationState<TContext extends Record<string, any>>(
-  config: OrchestrationMachineConfig<
-    TContext,
-    | OnOrchestrationStateEmit<
-        TContext,
-        {
-          type: string;
-          data: Record<OrchestrationMachineAllowedStringKeys, any>;
-        }
-      >
-    | string,
-    string | boolean
-  >,
+  config: OrchestrationMachineConfig<TContext, string, string | boolean>,
   emits?: Record<
     OrchestrationMachineAllowedStringKeys,
-    OnOrchestrationStateEmit<TContext>
+    OnOrchestrationStateEmit<
+      TContext,
+      string,
+      {
+        type?: string;
+        data: Record<OrchestrationMachineAllowedStringKeys, any>;
+      }
+    >
   >,
 ) {
   return Object.assign(
@@ -73,18 +70,7 @@ export function makeOnOrchestrationState<TContext extends Record<string, any>>(
 }
 
 export function makeOnOrchestrationEvent<TContext extends Record<string, any>>(
-  config: OrchestrationMachineConfig<
-    TContext,
-    | OnOrchestrationStateEmit<
-        TContext,
-        {
-          type: string;
-          data: Record<OrchestrationMachineAllowedStringKeys, any>;
-        }
-      >
-    | string,
-    string | boolean
-  >,
+  config: OrchestrationMachineConfig<TContext, string, string | boolean>,
   transformers?: Record<
     OrchestrationMachineAllowedStringKeys,
     OnOrchestrationEventTransformer
@@ -129,3 +115,47 @@ export function makeOnOrchestrationEvent<TContext extends Record<string, any>>(
       }),
   ) as Record<string, OnOrchestrationEvent>;
 }
+
+/**
+ * Retrieves the value at the specified path of the object.
+ *
+ * The function traverses the object based on the path provided. Each element in the path
+ * array specifies the next key in the object to navigate down. If any key is not found, or an error occurs,
+ * the function logs the error to the console and returns `undefined`.
+ *
+ * @param {string[]} path - An array of strings representing the path to navigate down the object.
+ * @param {any} obj - The object to be traversed.
+ * @returns {any} The value at the end of the path, or `undefined` if the path is invalid or an error occurs.
+ */
+export const getObjectOnPath = (path: string[], obj: any) =>
+  path.reduce((acc: any, curr: string) => {
+    try {
+      return acc?.[curr];
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+  }, obj);
+
+/**
+ * Attempts to convert a Zod schema to a JSON schema format safely.
+ *
+ * This function wraps the conversion process in a try-catch block to handle any potential errors
+ * gracefully. If an error occurs during the conversion, the error is logged to the console,
+ * and the function returns `undefined`. This approach ensures that the application can continue
+ * running even if the conversion fails.
+ *
+ * @param {any} schema - The Zod schema to be converted to JSON schema format. The type is `any`
+ * to accommodate any valid Zod schema, but it's recommended to pass a specific Zod schema type
+ * for more predictable outcomes.
+ * @returns {any | undefined} The JSON schema representation of the provided Zod schema if the conversion
+ * is successful, or `undefined` if the conversion fails due to an error.
+ */
+export const safeZodToJSON = (schema: any) => {
+  try {
+    return zodToJsonSchema(schema);
+  } catch (e) {
+    console.error(e);
+    return undefined;
+  }
+};

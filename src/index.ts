@@ -5,7 +5,7 @@ import { createCloudOrchestrationActor } from './utils/create_cloud_orchestratio
 import { orchestrateCloudEvents } from './orchestrate_cloud_events';
 import {
   IBasicOrchestrationRouter,
-  VersionedOrchestrationMachine
+  VersionedOrchestrationMachine,
 } from './orchestration_router/types';
 import {
   OnOrchestrationEvent,

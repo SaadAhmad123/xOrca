@@ -4,7 +4,11 @@ import {
   OrchestrationMachineConfig,
 } from './types';
 import { makeOnOrchestrationEvent, makeOnOrchestrationState } from './utils';
-import { assignEventDataToContext, assignLogsToContext, assignOrchestrationTimeToContext } from '../utils';
+import {
+  assignEventDataToContext,
+  assignLogsToContext,
+  assignOrchestrationTimeToContext,
+} from '../utils';
 
 /**
  * @deprecated
@@ -17,7 +21,7 @@ import { assignEventDataToContext, assignLogsToContext, assignOrchestrationTimeT
  * - `updateContext` which will update the context of the machine when a new event is processed.
  * - `updateLogs` which will update the logs of the of machine
  * - `updateCheckpoint` which will log time of the event processed by the orchestration
- * 
+ *
  * Prohibited context variable name (don't use them or put them in the context):
  * - `__machineLogs` contains the machine logs upon usage of `updateLogs`
  * - `__cloudevent` contains the most recent cloudevent used
@@ -168,8 +172,8 @@ export function createOrchestrationMachine<
         types: {} as {
           context: TContext;
         },
-        context: ({input}) => {
-          const startTime = Date.now()
+        context: ({ input }) => {
+          const startTime = Date.now();
           return {
             __traceId: (input as any)?.__traceId,
             __machineLogs: [],
@@ -180,11 +184,11 @@ export function createOrchestrationMachine<
                 start: startTime,
                 checkpoint: startTime,
                 elapsed: 0,
-              }
+              },
             ],
-            ...(config?.context?.({input}) || {})
-          }
-        }
+            ...(config?.context?.({ input }) || {}),
+          };
+        },
       },
       {
         actions: {

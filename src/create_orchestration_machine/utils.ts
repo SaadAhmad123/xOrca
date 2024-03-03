@@ -14,7 +14,14 @@ export function makeOnOrchestrationState<TContext extends Record<string, any>>(
   config: OrchestrationMachineConfig<TContext>,
   emits?: Record<
     OrchestrationMachineAllowedStringKeys,
-    OnOrchestrationStateEmit<TContext>
+    OnOrchestrationStateEmit<
+      TContext,
+      string,
+      {
+        type?: string;
+        data: Record<OrchestrationMachineAllowedStringKeys, any>;
+      }
+    >
   >,
 ) {
   return Object.assign(
