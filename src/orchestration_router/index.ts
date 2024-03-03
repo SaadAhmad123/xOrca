@@ -23,7 +23,6 @@ export default class OrchectrationRouter extends CloudEventRouter {
   async cloudevents(
     events: CloudEvent<Record<string, any>>[],
     errorOnNotFound?: boolean,
-    timeoutMs?: number,
   ): Promise<OrchestrationRouterResponse[]> {
     const subjectToEvents = events.reduce(
       (acc, cur) => {

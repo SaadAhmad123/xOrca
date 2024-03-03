@@ -46,7 +46,7 @@ describe('The orchestration router init handler specs', () => {
     const processId = uuidv4();
     const responses = await orchestrationInitHandler.safeCloudevent(
       new CloudEvent<Record<string, any>>({
-        type: `xorca.initializer.${orchestratorName}`,
+        type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
         datacontenttype: 'application/cloudevents+json; charset=UTF-8',
@@ -66,7 +66,7 @@ describe('The orchestration router init handler specs', () => {
     );
     expect(resp?.eventToEmit?.data?.bookId).toBe('1223.pdf');
     expect(resp?.eventToEmit?.source).toBe(
-      `xorca.${orchestratorName}`,
+      `xorca.orchestrator.${orchestratorName}`,
     );
     expect(resp?.eventToEmit?.datacontenttype).toBe(
       'application/cloudevents+json; charset=UTF-8',
@@ -77,7 +77,7 @@ describe('The orchestration router init handler specs', () => {
     const processId = uuidv4();
     await orchestrationInitHandler.safeCloudevent(
       new CloudEvent<Record<string, any>>({
-        type: `xorca.initializer.${orchestratorName}`,
+        type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
         datacontenttype: 'application/cloudevents+json; charset=UTF-8',
@@ -93,7 +93,7 @@ describe('The orchestration router init handler specs', () => {
 
     const responses = await orchestrationInitHandler.safeCloudevent(
       new CloudEvent<Record<string, any>>({
-        type: `xorca.initializer.${orchestratorName}`,
+        type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
         datacontenttype: 'application/cloudevents+json; charset=UTF-8',
@@ -108,7 +108,7 @@ describe('The orchestration router init handler specs', () => {
     );
 
     const resp = responses[0];
-    expect(resp?.eventToEmit?.type).toBe('xorca.initializer.summary.error');
+    expect(resp?.eventToEmit?.type).toBe('xorca.summary.start.error');
     expect(resp?.eventToEmit?.subject).toBe(
       makeSubject(processId, orchestratorName, orchestrationVersion),
     );
@@ -116,7 +116,7 @@ describe('The orchestration router init handler specs', () => {
       `An orchestration state with processId=${processId}, orchestration name=${orchestratorName} and machine version=${orchestrationVersion} already exists ==> subject=${makeSubject(processId, orchestratorName, orchestrationVersion)}`,
     );
     expect(resp?.eventToEmit?.source).toBe(
-      `xorca.${orchestratorName}`,
+      `xorca.orchestrator.${orchestratorName}`,
     );
     expect(resp?.eventToEmit?.datacontenttype).toBe(
       'application/cloudevents+json; charset=UTF-8',
@@ -127,7 +127,7 @@ describe('The orchestration router init handler specs', () => {
     const processId = uuidv4();
     const responses = await orchestrationInitHandler.safeCloudevent(
       new CloudEvent<Record<string, any>>({
-        type: `xorca.initializer.${orchestratorName}`,
+        type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
         datacontenttype: 'application/cloudevents+json; charset=UTF-8',
@@ -142,12 +142,12 @@ describe('The orchestration router init handler specs', () => {
     );
     const resp = responses[0];
     expect(resp.success).toBe(false);
-    expect(resp?.eventToEmit?.type).toBe('sys.xorca.initializer.summary.error');
+    expect(resp?.eventToEmit?.type).toBe('sys.xorca.summary.start.error');
     expect(resp?.eventToEmit?.data?.errorMessage).toBe(
-      '[CloudEventHandler][cloudevent] Invalid handler input data. The response data does not match type=xorca.initializer.summary expected data shape',
+      '[CloudEventHandler][cloudevent] Invalid handler input data. The response data does not match type=xorca.summary.start expected data shape',
     );
     expect(resp?.eventToEmit?.source).toBe(
-      `xorca.initializer.${orchestratorName}`,
+      `xorca.${orchestratorName}.start`,
     );
     expect(resp?.eventToEmit?.datacontenttype).toBe(
       'application/cloudevents+json; charset=UTF-8',

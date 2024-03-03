@@ -24,19 +24,21 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
   logger,
   onSnapshot,
   initialContextZodSchema,
+  enableRoutingMetaData,
 }: IOrchestrationRouter<TLogic>) {
   return new CloudEventHandler<
-    `xorca.initializer.${string}`,
+    `xorca.${string}.start`,
     | 'cmd.{{resource}}'
     | 'notif.{{resource}}'
-    | `xorca.initializer.${string}.error`
-    | `sys.xorca.initializer.${string}.error`
+    | `xorca.${string}.start.error`
+    | `sys.xorca.${string}.start.error`
   >({
+    disableRoutingMetadata: !enableRoutingMetaData,
     logger: logger,
-    name: `xorca.initializer.${name}`,
+    name: `xorca.${name}.start`,
     description: `[xOrca initialization handler] This handler deals with the initialization of the orchestration`,
     accepts: {
-      type: `xorca.initializer.${name}`,
+      type: `xorca.${name}.start`,
       description: [
         'Accepts an special init event to initiate the ',
         'orchestration. The event type must be `xorca.initializer.*`. ',
@@ -78,7 +80,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
         zodSchema: zod.object({}),
       },
       {
-        type: `xorca.initializer.${name}.error`,
+        type: `xorca.${name}.start.error`,
         description: [
           'An error that occurs during the initialization ',
           'of the orchestration. It is mostly due to either being ',
@@ -110,7 +112,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       const responses: CloudEventHandlerFunctionOutput<
         | 'cmd.{{resource}}'
         | 'notif.{{resource}}'
-        | `xorca.initializer.${string}.error`
+        | `xorca.${string}.start.error`
       >[] = [];
       let subject = 'unknown-subject';
       try {
@@ -119,7 +121,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
         subject = makeSubject(processId || uuidv4(), name, logic.version);
         await logger({
           type: 'START',
-          source: `xorca.initializer.${name}`,
+          source: `xorca.${name}.start`,
           spanContext: spanContext,
           startTime,
           input: {
@@ -158,7 +160,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
             type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
             data: item.data || {},
             subject: item.subject,
-            source: `xorca.${name}`,
+            source: `xorca.orchestrator.${name}`,
           });
         }
         try {
@@ -172,7 +174,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       } catch (e) {
         await persistablActor?.close();
         responses.push({
-          type: `xorca.initializer.${name}.error` as `xorca.initializer.${string}.error`,
+          type: `xorca.${name}.start.error` as `xorca.${string}.start.error`,
           data: {
             eventData: data,
             errorMessage: (e as Error)?.message,
@@ -180,11 +182,11 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
             errorStack: (e as Error)?.stack,
           },
           subject,
-          source: `xorca.${name}`,
+          source: `xorca.orchestrator.${name}`,
         });
         await logger({
           type: 'ERROR',
-          source: `xorca.initializer.${name}`,
+          source: `xorca.${name}.start`,
           spanContext: spanContext,
           error: e as Error,
           params,
@@ -199,7 +201,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
           async (item) =>
             await logger({
               type: 'LOG',
-              source: `xorca.initializer.${name}`,
+              source: `xorca.${name}.start`,
               spanContext: spanContext,
               output: item,
             }),
@@ -208,7 +210,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       const endTime = performance.now();
       await logger({
         type: 'END',
-        source: `xorca.initializer.${name}`,
+        source: `xorca.${name}.start`,
         spanContext: spanContext,
         startTime,
         endTime,

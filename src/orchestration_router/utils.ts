@@ -1,10 +1,10 @@
 import { Version } from '../cloud_orchestration_actor/types';
-import { OrchestrationMachineWithVersion } from '../orchestrate_cloud_events/types';
+import { VersionedOrchestrationMachine } from './types';
 import { AnyActorLogic } from 'xstate';
 
 export const getStateMachine = <TLogic extends AnyActorLogic>(
   orchestrationRouterName: string,
-  statemachine: OrchestrationMachineWithVersion<TLogic>[],
+  statemachine: VersionedOrchestrationMachine<TLogic>[],
   version?: Version,
 ) => {
   if (!version) {

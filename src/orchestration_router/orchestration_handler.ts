@@ -23,6 +23,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
   logger,
   onSnapshot,
   locking,
+  enableRoutingMetaData,
 }: IOrchestrationRouter<TLogic>) {
   return new CloudEventHandler<
     `evt.${string}`,
@@ -31,6 +32,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
     | `xorca.orchestrator.${string}.error`
     | `sys.xorca.orchestrator.${string}.error`
   >({
+    disableRoutingMetadata: !enableRoutingMetaData,
     logger,
     name: `xorca.orchestrator.${name}`,
     description: `[xOrca orchestration handler] This handler deals with the orchestration of the events for the orchestrations which have already been initialized`,
@@ -133,7 +135,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
             type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
             data: item.data || {},
             subject: item.subject,
-            source: `xorca.${name}`,
+            source: `xorca.orchestrator.${name}`,
           });
         }
         try {
@@ -155,7 +157,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
             errorStack: (e as Error)?.stack,
           },
           subject,
-          source: `xorca.${name}`,
+          source: `xorca.orchestrator.${name}`,
         });
         await logger({
           type: 'ERROR',

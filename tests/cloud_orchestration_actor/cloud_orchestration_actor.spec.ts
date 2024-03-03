@@ -7,10 +7,10 @@ import {
   LocalFileStorageManager,
   LockableStorageManager,
 } from 'unified-serverless-storage';
-import { IOrchestrateCloudEvents } from '../../src/orchestrate_cloud_events/types';
 import { Version } from '../../src/cloud_orchestration_actor/types';
 import { CloudEvent } from 'cloudevents';
 import { makeSubject } from '../../src/utils';
+import { IBasicOrchestrationRouter } from '../../src/orchestration_router/types';
 
 describe('Cloud Orchestration Actor Test', () => {
   const stateMachineName = 'SummaryStateMachine';
@@ -26,7 +26,7 @@ describe('Cloud Orchestration Actor Test', () => {
     fs.rmdirSync(rootDir, { recursive: true });
   });
 
-  const orchestrationParams: IOrchestrateCloudEvents<
+  const orchestrationParams: IBasicOrchestrationRouter<
     typeof summaryStateMachine.machine
   > = {
     name: stateMachineName,

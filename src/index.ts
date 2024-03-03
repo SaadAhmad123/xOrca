@@ -4,9 +4,9 @@ import CloudOrchestrationActor from './cloud_orchestration_actor';
 import { createCloudOrchestrationActor } from './utils/create_cloud_orchestration_actor';
 import { orchestrateCloudEvents } from './orchestrate_cloud_events';
 import {
-  IOrchestrateCloudEvents,
-  OrchestrationMachineWithVersion,
-} from './orchestrate_cloud_events/types';
+  IBasicOrchestrationRouter,
+  VersionedOrchestrationMachine
+} from './orchestration_router/types';
 import {
   OnOrchestrationEvent,
   OnOrchestrationState,
@@ -71,8 +71,8 @@ export {
   OnOrchestrationState,
   CloudOrchestrationMiddlewares,
   CloudOrchestrationActorOptions,
-  IOrchestrateCloudEvents,
-  OrchestrationMachineWithVersion,
+  IBasicOrchestrationRouter as IOrchestrateCloudEvents,
+  VersionedOrchestrationMachine as OrchestrationMachineWithVersion,
   Version,
   OrchestrationStateType,
   OrchestrationMachineAllowedStringKeys,

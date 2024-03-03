@@ -31,13 +31,13 @@ describe('The orchestration router init handler specs', () => {
     initialContextZodSchema: zod.object({
       bookId: zod.string().describe('The Book Id to which to react to.'),
     }),
-    // logger: async (params: ILogger) =>
+    // logger: async (params: ILogger) =>`
     //   console.log(JSON.stringify(params, null, 2)),
   };
 
   const createInitEvent = (processId: string) =>
     new CloudEvent<Record<string, any>>({
-      type: `xorca.initializer.${orchestratorName}`,
+      type: `xorca.${orchestratorName}.start`,
       subject: 'processInit',
       source: '/test',
       datacontenttype: 'application/cloudevents+json; charset=UTF-8',

@@ -37,7 +37,7 @@ describe('The orchestration router init handler specs', () => {
 
   const createInitEvent = (processId: string) =>
     new CloudEvent<Record<string, any>>({
-      type: `xorca.initializer.${orchestratorName}`,
+      type: `xorca.${orchestratorName}.start`,
       subject: 'processInit',
       source: '/test',
       datacontenttype: 'application/cloudevents+json; charset=UTF-8',
@@ -70,7 +70,7 @@ describe('The orchestration router init handler specs', () => {
     expect(responses[0].eventToEmit.type).toBe(
       'sys.xorca.orchestrator.summary.error',
     );
-    console.log(JSON.stringify(responses, null, 2));
+    //console.log(JSON.stringify(responses, null, 2));
     const subject = responses[0]?.eventToEmit?.subject || '';
     responses = await orchestrationHandler.safeCloudevent(
       new CloudEvent<Record<string, any>>({

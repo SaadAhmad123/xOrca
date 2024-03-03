@@ -1,6 +1,6 @@
 {
   "name": "xorca",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "This is a scalable library for managing state in serverless applications, offering persistence and locking for xState actors.",
   "main": "dist/index.js",
   "license": "MIT",
@@ -17,7 +17,7 @@
     "dev": "ts-node ./src/index.ts",
     "test": "jest --passWithNoTests",
     "format": "npx prettier --write .",
-    "build:doc": "typedoc src/index.ts --plugin @mxssfd/typedoc-theme --theme my-theme"
+    "build:doc": "typedoc src/index.ts --plugin @mxssfd/typedoc-theme  --plugin typedoc-plugin-mermaid --theme my-theme"
   },
   "engines": {
     "node": ">=16.10.0"
@@ -44,6 +44,7 @@
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "typedoc": "^0.25.7",
+    "typedoc-plugin-mermaid": "^1.10.0",
     "typescript": "^5.2.2"
   }
 }

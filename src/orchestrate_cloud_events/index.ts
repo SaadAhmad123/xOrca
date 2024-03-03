@@ -1,6 +1,7 @@
 import { AnyActorLogic, ContextFrom } from 'xstate';
 import { CloudEvent } from 'cloudevents';
-import { IOrchestrateCloudEvents, InitialOrchestrationEvent } from './types';
+import { InitialOrchestrationEvent } from './types';
+import { IBasicOrchestrationRouter } from '../orchestration_router/types';
 import { Version } from '../cloud_orchestration_actor/types';
 import { makeSubject, parseSubject } from '../utils';
 import { withPersistableActor } from '../utils/with_persistable_actor';
@@ -9,6 +10,7 @@ import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestrati
 import { v4 as uuidv4 } from 'uuid';
 
 /**
+ * @deprecated
  * Orchestrates cloud events by processing each event, managing the state with persistent actors,
  * and emitting new cloud events based on the defined orchestration logic.
  *
@@ -41,7 +43,7 @@ import { v4 as uuidv4 } from 'uuid';
  * console.log(result.errors); // Array of errors encountered during orchestration
  */
 export async function orchestrateCloudEvents<TLogic extends AnyActorLogic>(
-  param: IOrchestrateCloudEvents<TLogic>,
+  param: IBasicOrchestrationRouter<TLogic>,
   events: CloudEvent<Record<string, any>>[] = [],
   inits: InitialOrchestrationEvent<TLogic>[] = [],
 ) {
