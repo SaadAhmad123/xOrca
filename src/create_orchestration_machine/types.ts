@@ -134,10 +134,7 @@ export type OrchestrationTransitionConfig<
    * The schema of the event that is expected
    * to trigger the next state
    */
-  eventSchema?: {
-    type?: string;
-    data: zod.ZodObject<any>;
-  };
+  eventSchema?: EventSchema<string | undefined>;
   /**
    * Name(s) of the functions to execute when the event happens.
    *   Provide in the 'actions' key in the options of `createOrchestrationMachine`.
@@ -204,7 +201,7 @@ export type OnOrchestrationStateEmit<
  * of the orchestration machine
  */
 export type EventSchema<TEventType extends string | undefined = string> = {
-  type: TEventType;
+  type?: TEventType;
   data: zod.ZodObject<any>;
 };
 
@@ -385,10 +382,10 @@ export type OrchestrationMachine<TLogic extends AnyActorLogic> = {
 
   /**
    * Gets the events which are expected and emitted by the machine
-   * @returns 
+   * @returns
    */
-  getMachineEvents?: () => ({
+  getMachineEvents?: () => {
     emits: { type: string; data?: JsonSchema7Type };
     accepts: { type: string; data?: JsonSchema7Type }[];
-  }[])
+  }[];
 };

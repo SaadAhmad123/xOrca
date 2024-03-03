@@ -320,16 +320,19 @@ export function createOrchestrationMachineV2<
       getAllPaths(config)
         .filter(
           (item) =>
-            item.path[item.path.length - 2] === 'eventSchema' &&
-            item.path[item.path.length - 1] === 'type',
+            //item.path[item.path.length - 2] === 'eventSchema' &&
+            item.path[item.path.length - 1] === 'emit',
         )
         .filter((item) => !item.path.includes('on'))
-        .map((item) => item.path.slice(0, -2))
+        .map((item) => item.path.slice(0, -1))
         .map((item) => {
           const obj = getObjectOnPath(item, config);
           return {
             emits: {
-              type: obj?.eventSchema?.type || '',
+              type:
+                obj?.eventSchema?.type ||
+                (typeof obj?.emit === 'function' ? undefined : obj?.emit) ||
+                '#unknown_event',
               data: safeZodToJSON(obj?.eventSchema?.data),
             },
             accepts: Object.entries((obj?.on || {}) as Record<string, any>).map(

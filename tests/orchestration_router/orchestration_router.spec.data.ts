@@ -59,7 +59,6 @@ export const summaryStateMachine =
         Summarise: {
           emit: 'cmd.gpt.summary',
           eventSchema: {
-            type: 'cmd.gpt.summary',
             data: zod.object({
               content: zod.string().array(),
             }),

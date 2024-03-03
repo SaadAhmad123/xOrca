@@ -13,6 +13,9 @@ import { makeSubject } from '../../src/utils';
 import * as zod from 'zod';
 
 describe('The orchestration router init handler specs', () => {
+  console.log(
+    JSON.stringify(summaryStateMachine.getMachineEvents?.() || {}, null, 2),
+  );
   const rootDir = path.join(__dirname, '.statemachine.orchestration');
   const storageManager = new LockableStorageManager({
     storageManager: new LocalFileStorageManager(rootDir).setLogger(() => {}),
