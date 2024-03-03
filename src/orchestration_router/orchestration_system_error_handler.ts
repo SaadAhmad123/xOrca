@@ -144,7 +144,7 @@ export function createOrchestrationSystemErrorHandler<
           const snapshot = persistablActor.actor.getSnapshot();
           onSnapshot?.(subject, snapshot);
         } catch (e) {
-          console.log(e);
+          console.error(e);
         }
         await persistablActor.save();
         await persistablActor.close();

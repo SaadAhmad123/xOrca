@@ -142,7 +142,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
           const snapshot = persistablActor.actor.getSnapshot();
           onSnapshot?.(subject, snapshot);
         } catch (e) {
-          console.log(e);
+          console.error(e);
         }
         await persistablActor.save();
         await persistablActor.close();
