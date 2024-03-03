@@ -37,7 +37,6 @@ export const summaryStateMachine =
           on: {
             'evt.book.fetch.success': {
               eventSchema: {
-                type: 'evt.book.fetch.success',
                 data: zod.object({
                   bookData: zod.string().array(),
                 }),
@@ -48,7 +47,6 @@ export const summaryStateMachine =
             },
             'books.evt.fetch.error': {
               eventSchema: {
-                type: 'books.evt.fetch.error',
                 data: zod.object({
                   bookData: zod.string().array(),
                 }),
@@ -69,7 +67,6 @@ export const summaryStateMachine =
           on: {
             'evt.gpt.summary.success': {
               eventSchema: {
-                type: 'evt.gpt.summary.success',
                 data: zod.object({
                   summary: zod.string(),
                 }),
@@ -79,7 +76,6 @@ export const summaryStateMachine =
             },
             'evt.gpt.summary.error': {
               eventSchema: {
-                type: 'evt.gpt.summary.error',
                 data: zod.object({
                   error: zod.string(),
                 }),

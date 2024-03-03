@@ -134,7 +134,10 @@ export type OrchestrationTransitionConfig<
    * The schema of the event that is expected
    * to trigger the next state
    */
-  eventSchema?: EventSchema<string | undefined>;
+  eventSchema?: {
+    type?: string;
+    data: zod.ZodObject<any>;
+  };
   /**
    * Name(s) of the functions to execute when the event happens.
    *   Provide in the 'actions' key in the options of `createOrchestrationMachine`.
