@@ -6,7 +6,6 @@ import * as zod from 'zod';
 import { AnyActorLogic } from 'xstate';
 import PersistableActor from '../persistable_actor';
 import { getStateMachine } from './utils';
-import { parseSubject } from '../utils';
 import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestration_actor';
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
 import { IOrchestrationRouter } from './types';
@@ -24,6 +23,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
   onSnapshot,
   locking,
   enableRoutingMetaData,
+  raiseError
 }: IOrchestrationRouter<TLogic>) {
   return new CloudEventHandler<
     `evt.${string}`,
@@ -98,8 +98,8 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
       let subject = 'unknown-subject';
       try {
         subject = event.subject || subject;
-        const { name, version } = parseSubject(subject);
-        const logic = getStateMachine(name, statemachine, version);
+        const logic = getStateMachine(subject, [name], statemachine, raiseError);
+        if (!logic) return []
         await logger({
           type: 'START',
           source: `xorca.orchestrator.${name}`,

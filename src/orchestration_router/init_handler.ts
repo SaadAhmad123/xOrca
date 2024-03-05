@@ -25,6 +25,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
   onSnapshot,
   initialContextZodSchema,
   enableRoutingMetaData,
+  raiseError
 }: IOrchestrationRouter<TLogic>) {
   return new CloudEventHandler<
     `xorca.${string}.start`,
@@ -117,8 +118,9 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       let subject = 'unknown-subject';
       try {
         const { processId, context, version } = data;
-        const logic = getStateMachine(name, statemachine, version);
-        subject = makeSubject(processId || uuidv4(), name, logic.version);
+        subject = makeSubject(processId || uuidv4(), name, version);
+        const logic = getStateMachine(subject, [name], statemachine, raiseError);
+        if (!logic) return []
         await logger({
           type: 'START',
           source: `xorca.${name}.start`,
