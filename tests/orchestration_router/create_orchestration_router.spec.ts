@@ -10,6 +10,7 @@ import { CloudEvent } from 'cloudevents';
 import { v4 as uuidv4 } from 'uuid';
 import * as zod from 'zod';
 import { ILogger } from 'xorca-cloudevent-router';
+import { makeSubject, parseSubject } from '../../src/utils';
 
 describe('The orchestration router init handler specs', () => {
   const rootDir = path.join(__dirname, '.statemachine.orchestration');
@@ -126,6 +127,21 @@ describe('The orchestration router init handler specs', () => {
       }),
     ]);
     // This is because the machine is waiting for the other parallel state to end as well
+    expect(responses.length).toBe(0);
+
+    const parsed = parseSubject(subject)
+    responses = await orchestrationRouter.cloudevents([
+      new CloudEvent<Record<string, any>>({
+        type: `evt.regulations.grounded.success`,
+        subject: makeSubject(parsed.processId, parsed.name + '123', parsed.version),
+        source: '/test',
+        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
+        data: {
+          grounded: true,
+        },
+      }),
+    ]);
+    // Invalid name in subject
     expect(responses.length).toBe(0);
 
     responses = await orchestrationRouter.cloudevents([
