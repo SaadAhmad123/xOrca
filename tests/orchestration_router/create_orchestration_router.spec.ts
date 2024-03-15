@@ -51,7 +51,7 @@ describe('The orchestration router init handler specs', () => {
       },
     });
 
-  const orchestrationRouter = createOrchestrationRouter(params);
+  const { router: orchestrationRouter } = createOrchestrationRouter(params);
 
   afterAll(() => {
     try {
@@ -129,11 +129,15 @@ describe('The orchestration router init handler specs', () => {
     // This is because the machine is waiting for the other parallel state to end as well
     expect(responses.length).toBe(0);
 
-    const parsed = parseSubject(subject)
+    const parsed = parseSubject(subject);
     responses = await orchestrationRouter.cloudevents([
       new CloudEvent<Record<string, any>>({
         type: `evt.regulations.grounded.success`,
-        subject: makeSubject(parsed.processId, parsed.name + '123', parsed.version),
+        subject: makeSubject(
+          parsed.processId,
+          parsed.name + '123',
+          parsed.version,
+        ),
         source: '/test',
         datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {

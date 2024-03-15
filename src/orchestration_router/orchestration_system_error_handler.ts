@@ -9,6 +9,7 @@ import { getStateMachine } from './utils';
 import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestration_actor';
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
 import { IOrchestrationRouter } from './types';
+import { OrchestratorTerms } from '../create_orchestration_machine/utils';
 
 /**
  * Creates an event handler for orchestrating events in xOrca.
@@ -64,7 +65,7 @@ export function createOrchestrationSystemErrorHandler<
         zodSchema: zod.object({}),
       },
       {
-        type: `xorca.orchestrator.${name}.error`,
+        type: OrchestratorTerms.error(name),
         description: [
           'An error that occurs during the process ',
           'of the orchestration. It is mostly due to either being ',
@@ -73,18 +74,7 @@ export function createOrchestrationSystemErrorHandler<
           'process id or there is a error in the logic of the state machine ',
           'provided.',
         ].join(''),
-        zodSchema: zod.object({
-          errorName: zod.string().optional().describe('The name of the error'),
-          errorMessage: zod
-            .string()
-            .optional()
-            .describe('The message of the error'),
-          errorStack: zod
-            .string()
-            .optional()
-            .describe('The stack of the error'),
-          eventData: zod.any().optional().describe('The input to the handler'),
-        }),
+        zodSchema: OrchestratorTerms.errorSchema(),
       },
     ],
     handler: async ({ type, data, params, logger, spanContext, event }) => {
@@ -100,11 +90,16 @@ export function createOrchestrationSystemErrorHandler<
       let subject = 'unknown-subject';
       try {
         subject = event.subject || subject;
-        const logic = getStateMachine(subject, [name], statemachine, raiseError);
-        if (!logic) return []
+        const logic = getStateMachine(
+          subject,
+          [name],
+          statemachine,
+          raiseError,
+        );
+        if (!logic) return [];
         await logger({
           type: 'START',
-          source: `xorca.orchestrator.${name}`,
+          source: OrchestratorTerms.source(name),
           spanContext: spanContext,
           startTime,
           input: {
@@ -137,7 +132,7 @@ export function createOrchestrationSystemErrorHandler<
             type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
             data: item.data || {},
             subject: item.subject,
-            source: `xorca.orchestrator.${name}`,
+            source: OrchestratorTerms.source(name),
           });
         }
         try {
@@ -151,7 +146,7 @@ export function createOrchestrationSystemErrorHandler<
       } catch (e) {
         await persistablActor?.close();
         responses.push({
-          type: `xorca.orchestrator.${name}.error` as `xorca.orchestrator.${string}.error`,
+          type: OrchestratorTerms.error(name) as `xorca.orchestrator.${string}.error`,
           data: {
             eventData: data,
             errorMessage: (e as Error)?.message,
@@ -159,11 +154,11 @@ export function createOrchestrationSystemErrorHandler<
             errorStack: (e as Error)?.stack,
           },
           subject,
-          source: `xorca.orchestrator.${name}`,
+          source: OrchestratorTerms.source(name),
         });
         await logger({
           type: 'ERROR',
-          source: `xorca.orchestrator.${name}`,
+          source: OrchestratorTerms.source(name),
           spanContext: spanContext,
           error: e as Error,
           params,
@@ -178,7 +173,7 @@ export function createOrchestrationSystemErrorHandler<
           async (item) =>
             await logger({
               type: 'LOG',
-              source: `xorca.orchestrator.${name}`,
+              source: OrchestratorTerms.source(name),
               spanContext: spanContext,
               output: item,
             }),
@@ -187,7 +182,7 @@ export function createOrchestrationSystemErrorHandler<
       const endTime = performance.now();
       await logger({
         type: 'END',
-        source: `xorca.orchestrator.${name}`,
+        source: OrchestratorTerms.source(name),
         spanContext: spanContext,
         startTime,
         endTime,

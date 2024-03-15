@@ -9,6 +9,7 @@ import { getStateMachine } from './utils';
 import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestration_actor';
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
 import { IOrchestrationRouter } from './types';
+import { OrchestratorTerms } from '../create_orchestration_machine/utils';
 
 /**
  * Creates an event handler for orchestrating events in xOrca.
@@ -23,7 +24,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
   onSnapshot,
   locking,
   enableRoutingMetaData,
-  raiseError
+  raiseError,
 }: IOrchestrationRouter<TLogic>) {
   return new CloudEventHandler<
     `evt.${string}`,
@@ -34,7 +35,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
   >({
     disableRoutingMetadata: !enableRoutingMetaData,
     logger,
-    name: `xorca.orchestrator.${name}`,
+    name: OrchestratorTerms.source(name),
     description: `[xOrca orchestration handler] This handler deals with the orchestration of the events for the orchestrations which have already been initialized`,
     accepts: {
       type: `evt.{{resource}}`,
@@ -62,7 +63,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
         zodSchema: zod.object({}),
       },
       {
-        type: `xorca.orchestrator.${name}.error`,
+        type: OrchestratorTerms.error(name),
         description: [
           'An error that occurs during the process ',
           'of the orchestration. It is mostly due to either being ',
@@ -71,18 +72,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
           'process id or there is a error in the logic of the state machine ',
           'provided.',
         ].join(''),
-        zodSchema: zod.object({
-          errorName: zod.string().optional().describe('The name of the error'),
-          errorMessage: zod
-            .string()
-            .optional()
-            .describe('The message of the error'),
-          errorStack: zod
-            .string()
-            .optional()
-            .describe('The stack of the error'),
-          eventData: zod.any().optional().describe('The input to the handler'),
-        }),
+        zodSchema: OrchestratorTerms.errorSchema(),
       },
     ],
     handler: async ({ type, data, params, logger, spanContext, event }) => {
@@ -98,11 +88,16 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
       let subject = 'unknown-subject';
       try {
         subject = event.subject || subject;
-        const logic = getStateMachine(subject, [name], statemachine, raiseError);
-        if (!logic) return []
+        const logic = getStateMachine(
+          subject,
+          [name],
+          statemachine,
+          raiseError,
+        );
+        if (!logic) return [];
         await logger({
           type: 'START',
-          source: `xorca.orchestrator.${name}`,
+          source: OrchestratorTerms.source(name),
           spanContext: spanContext,
           startTime,
           input: {
@@ -135,7 +130,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
             type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
             data: item.data || {},
             subject: item.subject,
-            source: `xorca.orchestrator.${name}`,
+            source: OrchestratorTerms.source(name),
           });
         }
         try {
@@ -149,7 +144,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
       } catch (e) {
         await persistablActor?.close();
         responses.push({
-          type: `xorca.orchestrator.${name}.error` as `xorca.orchestrator.${string}.error`,
+          type: OrchestratorTerms.error(name) as `xorca.orchestrator.${string}.error`,
           data: {
             eventData: data,
             errorMessage: (e as Error)?.message,
@@ -157,11 +152,11 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
             errorStack: (e as Error)?.stack,
           },
           subject,
-          source: `xorca.orchestrator.${name}`,
+          source: OrchestratorTerms.source(name),
         });
         await logger({
           type: 'ERROR',
-          source: `xorca.orchestrator.${name}`,
+          source: OrchestratorTerms.source(name),
           spanContext: spanContext,
           error: e as Error,
           params,
@@ -176,7 +171,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
           async (item) =>
             await logger({
               type: 'LOG',
-              source: `xorca.orchestrator.${name}`,
+              source: OrchestratorTerms.source(name),
               spanContext: spanContext,
               output: item,
             }),
@@ -185,7 +180,7 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
       const endTime = performance.now();
       await logger({
         type: 'END',
-        source: `xorca.orchestrator.${name}`,
+        source: OrchestratorTerms.source(name),
         spanContext: spanContext,
         startTime,
         endTime,

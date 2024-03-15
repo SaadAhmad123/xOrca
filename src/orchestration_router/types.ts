@@ -95,22 +95,21 @@ export interface IOrchestrationRouter<TLogic extends AnyActorLogic>
    * Use sparingly, as orchestrators typically target services dynamically without preset destinations.
    */
   enableRoutingMetaData?: boolean;
-  
+
   /**
-   * An optional configuration object for the router that specifies which error events should be triggered under certain conditions. 
+   * An optional configuration object for the router that specifies which error events should be triggered under certain conditions.
    * This allows for fine-grained control over error handling, enabling applications to respond to specific error scenarios more effectively.
    */
   raiseError?: {
     /**
      * Determines whether an error should be raised when there is a mismatch between the orchestrator name specified in an event and the expected orchestrator name.
-     * 
+     *
      * When set to `true`, an error event is triggered if the name of the orchestrator that constructed the subject of the event does not match the orchestrator name that the router was expecting. This can be useful for detecting and responding to configuration errors or unauthorized attempts to trigger events.
-     * 
+     *
      * Setting this flag to `false` disables the error check, which might be suitable in environments where the orchestrator name is dynamic or verification is handled elsewhere.
      */
     onInvalidOrchestratorName: boolean;
-  }
-
+  };
 }
 
 /**

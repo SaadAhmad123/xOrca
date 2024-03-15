@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestration_actor';
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
 import { IOrchestrationRouter } from './types';
+import { OrchestratorTerms } from '../create_orchestration_machine/utils';
 
 /**
  * Creates an event handler for initializing orchestrations in xOrca.
@@ -25,7 +26,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
   onSnapshot,
   initialContextZodSchema,
   enableRoutingMetaData,
-  raiseError
+  raiseError,
 }: IOrchestrationRouter<TLogic>) {
   return new CloudEventHandler<
     `xorca.${string}.start`,
@@ -36,32 +37,16 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
   >({
     disableRoutingMetadata: !enableRoutingMetaData,
     logger: logger,
-    name: `xorca.${name}.start`,
+    name: OrchestratorTerms.start(name),
     description: `[xOrca initialization handler] This handler deals with the initialization of the orchestration`,
     accepts: {
-      type: `xorca.${name}.start`,
+      type: OrchestratorTerms.start(name),
       description: [
         'Accepts an special init event to initiate the ',
         'orchestration. The event type must be `xorca.initializer.*`. ',
         'For example, `xorca.initializer.book.summarisation`',
       ].join(''),
-      zodSchema: zod.object({
-        processId: zod
-          .string()
-          .describe(
-            `The process ID seed of the orchestration. It must be a unique id. It is used to generate the storage key and trace id of the orchestration`,
-          ),
-        context: initialContextZodSchema.describe(
-          `The initial data seeded to the orchestration context. e.g. { bookId: "some-book.pdf", status: "pending" }. ${initialContextZodSchema.description}`,
-        ),
-        version: zod
-          .string()
-          .regex(/^\d+\.\d+\.\d+$/)
-          .optional()
-          .describe(
-            `The version for the orchestration. If not provided, the latest version will be used. The version must be of format '{number}.{number}.{number}'`,
-          ),
-      }),
+      zodSchema: OrchestratorTerms.startSchema(initialContextZodSchema),
     },
     emits: [
       {
@@ -81,7 +66,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
         zodSchema: zod.object({}),
       },
       {
-        type: `xorca.${name}.start.error`,
+        type: OrchestratorTerms.startError(name),
         description: [
           'An error that occurs during the initialization ',
           'of the orchestration. It is mostly due to either being ',
@@ -90,18 +75,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
           'process id or there is a error in the logic of the state machine ',
           'provided.',
         ].join(''),
-        zodSchema: zod.object({
-          errorName: zod.string().optional().describe('The name of the error'),
-          errorMessage: zod
-            .string()
-            .optional()
-            .describe('The message of the error'),
-          errorStack: zod
-            .string()
-            .optional()
-            .describe('The stack of the error'),
-          eventData: zod.any().optional().describe('The input to the handler'),
-        }),
+        zodSchema: OrchestratorTerms.errorSchema(),
       },
     ],
     handler: async ({ type, data, params, logger, spanContext }) => {
@@ -119,11 +93,16 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       try {
         const { processId, context, version } = data;
         subject = makeSubject(processId || uuidv4(), name, version);
-        const logic = getStateMachine(subject, [name], statemachine, raiseError);
-        if (!logic) return []
+        const logic = getStateMachine(
+          subject,
+          [name],
+          statemachine,
+          raiseError,
+        );
+        if (!logic) return [];
         await logger({
           type: 'START',
-          source: `xorca.${name}.start`,
+          source: OrchestratorTerms.source(name), 
           spanContext: spanContext,
           startTime,
           input: {
@@ -162,7 +141,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
             type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
             data: item.data || {},
             subject: item.subject,
-            source: `xorca.orchestrator.${name}`,
+            source: OrchestratorTerms.source(name),
           });
         }
         try {
@@ -176,7 +155,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       } catch (e) {
         await persistablActor?.close();
         responses.push({
-          type: `xorca.${name}.start.error` as `xorca.${string}.start.error`,
+          type: OrchestratorTerms.startError(name) as `xorca.${string}.start.error`,
           data: {
             eventData: data,
             errorMessage: (e as Error)?.message,
@@ -184,11 +163,11 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
             errorStack: (e as Error)?.stack,
           },
           subject,
-          source: `xorca.orchestrator.${name}`,
+          source: OrchestratorTerms.source(name),
         });
         await logger({
           type: 'ERROR',
-          source: `xorca.${name}.start`,
+          source: OrchestratorTerms.source(name),
           spanContext: spanContext,
           error: e as Error,
           params,
@@ -203,7 +182,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
           async (item) =>
             await logger({
               type: 'LOG',
-              source: `xorca.${name}.start`,
+              source: OrchestratorTerms.source(name),
               spanContext: spanContext,
               output: item,
             }),
@@ -212,7 +191,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       const endTime = performance.now();
       await logger({
         type: 'END',
-        source: `xorca.${name}.start`,
+        source: OrchestratorTerms.source(name),
         spanContext: spanContext,
         startTime,
         endTime,

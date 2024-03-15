@@ -24,8 +24,10 @@ import { createOrchestrationSystemErrorHandler } from './orchestration_system_er
  * - `initialContextZodSchema`: Validates the initial context data against a Zod schema to ensure correct orchestration initialization.
  * - `logger`: Optional. Facilitates logging for router activities, aiding in debugging and monitoring.
  * 
- * @returns {OrchestratorRouter<TLogic>} - An instance of `OrchestratorRouter` configured with the specified parameters.
- *                                         This router manages the lifecycle and processing of orchestrations in the system.
+ * @returns An instance of `OrchestratorRouter` configured with the specified parameters.
+ *          This router manages the lifecycle and processing of orchestrations in the system.
+ *          And a function `getOrchestrationEvents` which can provide the schema of the events which are emited and consumed 
+ *          by the orchestrator.
  * 
  * -------------
  * # Explanation
@@ -145,13 +147,29 @@ end
 export function createOrchestrationRouter<TLogic extends AnyActorLogic>(
   params: IOrchestrationRouter<TLogic>,
 ) {
-  return new OrchectrationRouter({
-    name: params.name,
-    description: params.description,
-    handlers: [
-      createOrchestrationInitHandler(params),
-      createOrchestrationHandler(params),
-      createOrchestrationSystemErrorHandler(params),
-    ],
-  });
+  return {
+    router: new OrchectrationRouter({
+      name: params.name,
+      description: params.description,
+      handlers: [
+        createOrchestrationInitHandler(params),
+        createOrchestrationHandler(params),
+        createOrchestrationSystemErrorHandler(params),
+      ],
+    }),
+    getOrchestrationEvents: () => ({
+      name: params.name,
+      description: params.description,
+      machineSchema: params.statemachine.map((item) => {
+        return {
+          version: item.version,
+          events:
+            item.orchestrationMachine.getOrchestrationEvents?.(
+              params.name,
+              params.initialContextZodSchema,
+            ) || [],
+        };
+      }),
+    }),
+  };
 }

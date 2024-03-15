@@ -1,10 +1,12 @@
 import {
   CreateOrchestrationMachineOptions,
+  MachineEventSchema,
   OrchestrationMachine,
   OrchestrationMachineConfig,
 } from '../types';
 import { AnyActorLogic, createMachine } from 'xstate';
 import {
+  eventSchemaToZod,
   getObjectOnPath,
   makeOnOrchestrationEvent,
   makeOnOrchestrationState,
@@ -17,6 +19,8 @@ import {
   getAllPaths,
 } from '../../utils';
 import { JsonSchema7Type } from 'zod-to-json-schema';
+import * as zod from 'zod';
+import { OrchestratorTerms } from '../utils';
 
 /**
  * Creates an orchestration state machine designed to run in a short-lived serverless environment.
@@ -316,35 +320,100 @@ export function createOrchestrationMachineV2<
       options?.transformers,
     ),
     onOrchestrationState: makeOnOrchestrationState(config, options?.emits),
-    getMachineEvents: () =>
-      getAllPaths(config)
-        .filter(
-          (item) =>
-            //item.path[item.path.length - 2] === 'eventSchema' &&
-            item.path[item.path.length - 1] === 'emit',
-        )
+
+    getOrchestrationEvents: (
+      sourceName?: string,
+      initialContextZodSchema?: zod.ZodObject<any>,
+    ) => {
+      let events = getAllPaths(config)
+        .filter((item) => item.path[item.path.length - 1] === 'emit')
         .filter((item) => !item.path.includes('on'))
         .map((item) => item.path.slice(0, -1))
         .map((item) => {
           const obj = getObjectOnPath(item, config);
           return {
-            emits: {
+            emits: eventSchemaToZod({
               type:
                 obj?.eventSchema?.type ||
                 (typeof obj?.emit === 'function' ? undefined : obj?.emit) ||
                 '#unknown_event',
-              data: safeZodToJSON(obj?.eventSchema?.data),
-            },
+              zodDataSchema: obj?.eventSchema?.data || zod.object({}),
+              source: OrchestratorTerms.source(sourceName),
+            }),
             accepts: Object.entries((obj?.on || {}) as Record<string, any>).map(
-              ([key, value]) => ({
-                type: value?.eventSchema?.type || key,
-                data: safeZodToJSON(value?.eventSchema?.data),
-              }),
+              ([key, value]) =>
+                eventSchemaToZod({
+                  type: value?.eventSchema?.type || key,
+                  zodDataSchema: value?.eventSchema?.data || zod.object({}),
+                  source: OrchestratorTerms.source(sourceName),
+                }),
             ),
           };
-        }) as {
-        emits: { type: string; data?: JsonSchema7Type };
-        accepts: { type: string; data?: JsonSchema7Type }[];
-      }[],
+        }) as MachineEventSchema[];
+
+      events = [
+        ...events,
+        ...(config.initial ? [config.initial] : Object.keys(config.states)).map(
+          (item) => {
+            const obj = config.states[item];
+            return {
+              emits: eventSchemaToZod({
+                type:
+                  obj?.eventSchema?.type ||
+                  (typeof obj?.emit === 'function' ? undefined : obj?.emit) ||
+                  '#unknown_event',
+                zodDataSchema: obj?.eventSchema?.data || zod.object({}),
+                source: OrchestratorTerms.source(sourceName),
+              }),
+              accepts: [
+                eventSchemaToZod({
+                  type: OrchestratorTerms.start(sourceName),
+                  zodDataSchema: OrchestratorTerms.startSchema(
+                    initialContextZodSchema,
+                  ),
+                  source: OrchestratorTerms.source(sourceName),
+                }),
+              ],
+            } as MachineEventSchema;
+          },
+        ),
+        {
+          emits: eventSchemaToZod({
+            type: OrchestratorTerms.error(sourceName),
+            zodDataSchema: OrchestratorTerms.errorSchema(),
+            source: OrchestratorTerms.source(sourceName),
+          }),
+          accepts: Array.from(
+            new Set(
+              events.reduce(
+                (acc, item) => [
+                  ...acc,
+                  ...item.accepts.map((item) => JSON.stringify(item)),
+                ],
+                [] as string[],
+              ),
+            ),
+          ).map((item) => JSON.parse(item)),
+        },
+        {
+          emits: eventSchemaToZod({
+            type: OrchestratorTerms.startError(sourceName),
+            zodDataSchema: OrchestratorTerms.errorSchema(),
+            source: OrchestratorTerms.source(sourceName),
+          }),
+          accepts: [
+            eventSchemaToZod({
+              type: OrchestratorTerms.start(sourceName),
+              zodDataSchema: OrchestratorTerms.startSchema(
+                initialContextZodSchema,
+              ),
+              source: OrchestratorTerms.source(sourceName),
+            }),
+          ],
+        },
+      ];
+
+      return events;
+    },
   } as OrchestrationMachine<AnyActorLogic>;
 }

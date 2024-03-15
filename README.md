@@ -118,13 +118,13 @@ For standardisation, the CloudEvent spec is adopted by this library. To enforce 
 
 Within the library, various components are meticulously crafted to facilitate seamless orchestrations:
 
-- **`orchestrateCloudEvents`** [[See details](/readme/orchestrateCloudEvents.md)] This function serves as a cornerstone, enabling the swift incorporation of orchestration into code. By adeptly managing the intricacies of state creation, persistence, and rules engine execution, it offers a straightforward solution for orchestrating complex workflows.
+- **`createOrchestrationRouter`** [[See details](https://saadahmad123.github.io/xOrca/index.html)] This function serves as a cornerstone, enabling the swift incorporation of orchestration into code. By adeptly managing the intricacies of state creation, persistence, and rules engine execution, it offers a straightforward solution for orchestrating complex workflows.
 
-- **`createOrchestrationMachine`** [[See details](/readme/createOrchestrationMachine.md)] This class empowers users to construct a state machine with a subset of features from Xstate, excluding `invoke` and `delay`. It seamlessly integrates essential features tailored for orchestrations, providing a versatile tool for crafting intricate workflows.
+- **`createOrchestrationMachineV2`** [[See details](https://saadahmad123.github.io/xOrca/index.html)] This class empowers users to construct a state machine with a subset of features from Xstate, excluding `invoke` and `delay`. It seamlessly integrates essential features tailored for orchestrations, providing a versatile tool for crafting intricate workflows.
 
-- **`PersistableActor`** [[See details](https://saadahmad123.github.io/xOrca/classes/PersistableActor.html) and [withPersistableActor](https://saadahmad123.github.io/xOrca/functions/withPersistableActor.html)] Designed to enhance any xState Actor, this class introduces persistence to cloud storage, fortified with robust locking mechanisms. It extends the capabilities of xState Actors, ensuring resilient and secure storage of state information.
+- **`PersistableActor`** [[See details](https://saadahmad123.github.io/xOrca/index.html) and [withPersistableActor](https://saadahmad123.github.io/xOrca/index.html)] Designed to enhance any xState Actor, this class introduces persistence to cloud storage, fortified with robust locking mechanisms. It extends the capabilities of xState Actors, ensuring resilient and secure storage of state information.
 
-- **`CloudOrchestrationActor`** [[See details](https://saadahmad123.github.io/xOrca/classes/CloudOrchestrationActor.html)] A subclass of xState Actor, this component goes beyond the standard features, incorporating properties, methods, and mechanisms essential for efficient execution of state machines within the dynamic context of short-lived serverless environments. Its design caters specifically to the unique demands of orchestrating workflows in such dynamic and resource-constrained settings.
+- **`CloudOrchestrationActor`** [[See details](https://saadahmad123.github.io/xOrca/index.html)] A subclass of xState Actor, this component goes beyond the standard features, incorporating properties, methods, and mechanisms essential for efficient execution of state machines within the dynamic context of short-lived serverless environments. Its design caters specifically to the unique demands of orchestrating workflows in such dynamic and resource-constrained settings.
 
 For other functionalities see the [Typedocs](https://saadahmad123.github.io/xOrca/).
 

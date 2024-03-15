@@ -354,6 +354,11 @@ export type CreateOrchestrationMachineOptions<
   guards?: InternalMachineImplementations<TContext, any>['guards'];
 };
 
+export type MachineEventSchema = {
+  emits: JsonSchema7Type;
+  accepts: JsonSchema7Type[];
+};
+
 /**
  * Represents the output of the `createOrchestrationMachine` function.
  * This type encapsulates the machine created by xstate's `createMachine` function,
@@ -384,8 +389,8 @@ export type OrchestrationMachine<TLogic extends AnyActorLogic> = {
    * Gets the events which are expected and emitted by the machine
    * @returns
    */
-  getMachineEvents?: () => {
-    emits: { type: string; data?: JsonSchema7Type };
-    accepts: { type: string; data?: JsonSchema7Type }[];
-  }[];
+  getOrchestrationEvents?: (
+    sourceName?: string,
+    initialContextZodSchema?: zod.ZodObject<any>,
+  ) => MachineEventSchema[];
 };

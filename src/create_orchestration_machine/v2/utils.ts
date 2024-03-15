@@ -10,6 +10,8 @@ import {
   OrchestrationMachineConfig,
 } from '../types';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import * as zod from 'zod';
+import { TraceParent } from 'xorca-cloudevent-router';
 
 const isFunction = (variable: any) => typeof variable === 'function';
 const isBoolean = (variable: any) => typeof variable === 'boolean';
@@ -159,3 +161,62 @@ export const safeZodToJSON = (schema: any) => {
     return undefined;
   }
 };
+
+interface IEventSchemaToZod {
+  type: string;
+  zodDataSchema: zod.ZodObject<any>;
+  source: string;
+}
+
+/**
+ * Conver the event to zod schema
+ * @returns
+ */
+export function eventSchemaToZod({
+  type,
+  zodDataSchema,
+  source,
+}: IEventSchemaToZod) {
+  return zodToJsonSchema(
+    zod.object({
+      id: zod.string().optional().describe('A UUID of this event'),
+      subject: zod.string().describe('The process reference'),
+      type: zod.literal(type).describe('The topic of the event'),
+      source: zod
+        .literal(encodeURI(source))
+        .describe('The orchestrator source name'),
+      data: zodDataSchema,
+      datacontenttype: zod.literal(
+        'application/cloudevents+json; charset=UTF-8',
+      ),
+      traceparent: zod
+        .string()
+        .regex(TraceParent.validationRegex)
+        .optional()
+        .describe(
+          [
+            'The traceparent header represents the incoming request in a tracing system in a common format.',
+            'See the W3C spec for the definition as per [CloudEvents Distributed Tracing ',
+            'Specification](https://github.com/cloudevents/spec/blob/main/cloudevents/extensions/distributed-tracing.md).',
+          ].join(''),
+        ),
+      tracestate: zod
+        .string()
+        .optional()
+        .describe(
+          'Additional tracing info as per the [spec](https://www.w3.org/TR/trace-context/#tracestate-header)',
+        ),
+      to: zod
+        .null()
+        .describe(
+          'The orchestrator does not respond to any event. Rather it is calculating the next event',
+        ),
+      redirectTo: zod
+        .string()
+        .optional()
+        .describe(
+          'The orchestrator does not respond to any event. Rather it is calculating the next event',
+        ),
+    }),
+  );
+}

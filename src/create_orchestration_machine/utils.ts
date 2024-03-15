@@ -9,6 +9,7 @@ import {
   OrchestrationMachineAllowedStringKeys,
   OrchestrationMachineConfig,
 } from './types';
+import * as zod from 'zod';
 
 export function makeOnOrchestrationState<TContext extends Record<string, any>>(
   config: OrchestrationMachineConfig<TContext>,
@@ -92,3 +93,42 @@ export function makeOnOrchestrationEvent<TContext extends Record<string, any>>(
       }),
   ) as Record<string, OnOrchestrationEvent>;
 }
+
+export const OrchestratorTerms = {
+  source: (name?: string) =>
+    `xorca.orchestrator.${name || 'noSourceAvailable'}` as `xorca.orchestrator.${string}`,
+  error: (name?: string) =>
+    `xorca.orchestrator.${name || 'noSourceAvailable'}.error` as `xorca.orchestrator.${string}.error`,
+  errorSchema: () =>
+    zod.object({
+      errorName: zod.string().optional().describe('The name of the error'),
+      errorMessage: zod
+        .string()
+        .optional()
+        .describe('The message of the error'),
+      errorStack: zod.string().optional().describe('The stack of the error'),
+      eventData: zod.any().optional().describe('The input to the handler'),
+    }),
+  start: (name?: string) =>
+    `xorca.${name || 'noSourceAvailable'}.start` as `xorca.${string}.start`,
+  startError: (name?: string) =>
+    `xorca.${name || 'noSourceAvailable'}.start.error` as `xorca.${string}.start.error`,
+  startSchema: (initialContextZodSchema?: zod.ZodObject<any>) =>
+    zod.object({
+      processId: zod
+        .string()
+        .describe(
+          `The process ID seed of the orchestration. It must be a unique id. It is used to generate the storage key and trace id of the orchestration`,
+        ),
+      context: (initialContextZodSchema || zod.object({})).describe(
+        `The initial data seeded to the orchestration context. e.g. { bookId: "some-book.pdf", status: "pending" }. ${initialContextZodSchema?.description}`,
+      ),
+      version: zod
+        .string()
+        .regex(/^\d+\.\d+\.\d+$/)
+        .optional()
+        .describe(
+          `The version for the orchestration. If not provided, the latest version will be used. The version must be of format '{number}.{number}.{number}'`,
+        ),
+    }),
+};
