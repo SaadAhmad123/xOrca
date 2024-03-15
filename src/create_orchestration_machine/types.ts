@@ -355,7 +355,7 @@ export type CreateOrchestrationMachineOptions<
 };
 
 export type MachineEventSchema = {
-  emits: JsonSchema7Type;
+  emits: JsonSchema7Type[];
   accepts: JsonSchema7Type[];
 };
 
@@ -392,5 +392,9 @@ export type OrchestrationMachine<TLogic extends AnyActorLogic> = {
   getOrchestrationEvents?: (
     sourceName?: string,
     initialContextZodSchema?: zod.ZodObject<any>,
-  ) => MachineEventSchema[];
+  ) => {
+    orchestrationEvents: MachineEventSchema[]
+    orchestrationInit: MachineEventSchema,
+    orchestrationError: MachineEventSchema,
+  };
 };

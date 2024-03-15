@@ -163,11 +163,10 @@ export function createOrchestrationRouter<TLogic extends AnyActorLogic>(
       machineSchema: params.statemachine.map((item) => {
         return {
           version: item.version,
-          events:
-            item.orchestrationMachine.getOrchestrationEvents?.(
-              params.name,
-              params.initialContextZodSchema,
-            ) || [],
+          ...(item.orchestrationMachine.getOrchestrationEvents?.(
+            params.name,
+            params.initialContextZodSchema,
+          ) || {}),
         };
       }),
     }),

@@ -332,14 +332,14 @@ export function createOrchestrationMachineV2<
         .map((item) => {
           const obj = getObjectOnPath(item, config);
           return {
-            emits: eventSchemaToZod({
+            emits: [eventSchemaToZod({
               type:
                 obj?.eventSchema?.type ||
                 (typeof obj?.emit === 'function' ? undefined : obj?.emit) ||
                 '#unknown_event',
               zodDataSchema: obj?.eventSchema?.data || zod.object({}),
               source: OrchestratorTerms.source(sourceName),
-            }),
+            })],
             accepts: Object.entries((obj?.on || {}) as Record<string, any>).map(
               ([key, value]) =>
                 eventSchemaToZod({
@@ -351,38 +351,45 @@ export function createOrchestrationMachineV2<
           };
         }) as MachineEventSchema[];
 
-      events = [
-        ...events,
-        ...(config.initial ? [config.initial] : Object.keys(config.states)).map(
-          (item) => {
-            const obj = config.states[item];
-            return {
-              emits: eventSchemaToZod({
+      return {
+        orchestrationEvents: events,
+        orchestrationInit: {
+          accepts: [
+            eventSchemaToZod({
+              type: OrchestratorTerms.start(sourceName),
+              zodDataSchema: OrchestratorTerms.startSchema(
+                initialContextZodSchema,
+              ),
+              source: OrchestratorTerms.source(sourceName),
+            })
+          ],
+          emits: [
+            ...(config.initial ? [config.initial] : Object.keys(config.states)).map(item => {
+              const obj = config.states[item];
+              return eventSchemaToZod({
                 type:
                   obj?.eventSchema?.type ||
                   (typeof obj?.emit === 'function' ? undefined : obj?.emit) ||
                   '#unknown_event',
                 zodDataSchema: obj?.eventSchema?.data || zod.object({}),
                 source: OrchestratorTerms.source(sourceName),
-              }),
-              accepts: [
-                eventSchemaToZod({
-                  type: OrchestratorTerms.start(sourceName),
-                  zodDataSchema: OrchestratorTerms.startSchema(
-                    initialContextZodSchema,
-                  ),
-                  source: OrchestratorTerms.source(sourceName),
-                }),
-              ],
-            } as MachineEventSchema;
-          },
-        ),
-        {
-          emits: eventSchemaToZod({
-            type: OrchestratorTerms.error(sourceName),
-            zodDataSchema: OrchestratorTerms.errorSchema(),
-            source: OrchestratorTerms.source(sourceName),
-          }),
+              })
+            }),
+            eventSchemaToZod({
+              type: OrchestratorTerms.startError(sourceName),
+              zodDataSchema: OrchestratorTerms.errorSchema(),
+              source: OrchestratorTerms.source(sourceName),
+            }),
+          ]
+        } as MachineEventSchema,
+        orchestrationError: {
+          emits: [
+            eventSchemaToZod({
+              type: OrchestratorTerms.error(sourceName),
+              zodDataSchema: OrchestratorTerms.errorSchema(),
+              source: OrchestratorTerms.source(sourceName),
+            })
+          ],
           accepts: Array.from(
             new Set(
               events.reduce(
@@ -394,26 +401,8 @@ export function createOrchestrationMachineV2<
               ),
             ),
           ).map((item) => JSON.parse(item)),
-        },
-        {
-          emits: eventSchemaToZod({
-            type: OrchestratorTerms.startError(sourceName),
-            zodDataSchema: OrchestratorTerms.errorSchema(),
-            source: OrchestratorTerms.source(sourceName),
-          }),
-          accepts: [
-            eventSchemaToZod({
-              type: OrchestratorTerms.start(sourceName),
-              zodDataSchema: OrchestratorTerms.startSchema(
-                initialContextZodSchema,
-              ),
-              source: OrchestratorTerms.source(sourceName),
-            }),
-          ],
-        },
-      ];
-
-      return events;
+        } as MachineEventSchema,
+      };
     },
   } as OrchestrationMachine<AnyActorLogic>;
 }

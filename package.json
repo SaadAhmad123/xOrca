@@ -1,6 +1,6 @@
 {
   "name": "xorca",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "description": "This is a scalable library for managing state in serverless applications, offering persistence and locking for xState actors.",
   "main": "dist/index.js",
   "license": "MIT",
