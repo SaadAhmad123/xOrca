@@ -10,15 +10,14 @@ import {
   getObjectOnPath,
   makeOnOrchestrationEvent,
   makeOnOrchestrationState,
-  safeZodToJSON,
 } from './utils';
 import {
   assignEventDataToContext,
+  assignExecutionUnitsToContext,
   assignLogsToContext,
   assignOrchestrationTimeToContext,
   getAllPaths,
 } from '../../utils';
-import { JsonSchema7Type } from 'zod-to-json-schema';
 import * as zod from 'zod';
 import { OrchestratorTerms } from '../utils';
 
@@ -32,12 +31,15 @@ import { OrchestratorTerms } from '../utils';
  * - `updateContext` which will update the context of the machine when a new event is processed.
  * - `updateLogs` which will update the logs of the of machine
  * - `updateCheckpoint` which will log time of the event processed by the orchestration
+ * - `updateExecutionUnits` which will update the execution units on  the event
  *
  * Prohibited context variable name (don't use them or put them in the context):
  * - `__machineLogs` contains the machine logs upon usage of `updateLogs`
  * - `__cloudevent` contains the most recent cloudevent used
  * - `__traceId` contains the string with which you can trace the entire orchestration
  * - `__orchestrationTime` contains the list of all checkpoint times and elapsed times
+ * - `__executionunits` contains the list of all the execution units utilised along the span of the orchestration. Initailly, there only one object which defines the execution unit of the orchestrator by event_type=`init`.
+ * 
  *
  * @param config - The orchestration machine definition, specifying its structure and behavior.
  * @param options - The options for the configuration of the machine, including emits and transformers.
@@ -91,7 +93,7 @@ export const summaryStateMachine =
               },
               transformer: false,
               target: 'Summarise',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions(),
             },
             'books.evt.fetch.error': {
               eventSchema: {
@@ -101,7 +103,7 @@ export const summaryStateMachine =
                 }),
               },
               target: 'Error',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions(),
             },
           },
         },
@@ -122,7 +124,7 @@ export const summaryStateMachine =
                 }),
               },
               target: 'Regulate',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions(),
             },
             'evt.gpt.summary.error': {
               eventSchema: {
@@ -132,7 +134,7 @@ export const summaryStateMachine =
                 }),
               },
               target: 'Error',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions(),
             },
           },
         },
@@ -161,7 +163,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions(),
                     },
                     'evt.regulations.grounded.error': {
                       eventSchema: {
@@ -171,7 +173,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions(),
                     },
                   },
                 },
@@ -201,7 +203,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions(),
                     },
                     'evt.regulations.compliant.error': {
                       eventSchema: {
@@ -211,7 +213,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions(),
                     },
                   },
                 },
@@ -290,6 +292,7 @@ export function createOrchestrationMachineV2<
         context: ({ input }) => {
           const startTime = Date.now();
           return {
+            ...(config?.context?.({ input }) || {}),
             __traceId: (input as any)?.__traceId,
             __machineLogs: [],
             __cloudevent: undefined,
@@ -301,7 +304,12 @@ export function createOrchestrationMachineV2<
                 elapsed: 0,
               },
             ],
-            ...(config?.context?.({ input }) || {}),
+            __cumulativeExecutionUnits: [
+              {
+                event_type: 'init',
+                units: (1).toString(),
+              },
+            ],
           };
         },
       },
@@ -311,6 +319,7 @@ export function createOrchestrationMachineV2<
           updateContext: assignEventDataToContext as any,
           updateLogs: assignLogsToContext as any,
           updateCheckpoint: assignOrchestrationTimeToContext as any,
+          updateExecutionUnits: assignExecutionUnitsToContext as any,
         },
         guards: options?.guards,
       },
@@ -332,20 +341,22 @@ export function createOrchestrationMachineV2<
         .map((item) => {
           const obj = getObjectOnPath(item, config);
           return {
-            emits: [eventSchemaToZod({
-              type:
-                obj?.eventSchema?.type ||
-                (typeof obj?.emit === 'function' ? undefined : obj?.emit) ||
-                '#unknown_event',
-              zodDataSchema: obj?.eventSchema?.data || zod.object({}),
-              source: OrchestratorTerms.source(sourceName),
-            })],
+            emits: [
+              eventSchemaToZod({
+                type:
+                  obj?.eventSchema?.type ||
+                  (typeof obj?.emit === 'function' ? undefined : obj?.emit) ||
+                  '#unknown_event',
+                zodDataSchema: obj?.eventSchema?.data || zod.object({}),
+                source: OrchestratorTerms.source(sourceName),
+              }),
+            ],
             accepts: Object.entries((obj?.on || {}) as Record<string, any>).map(
               ([key, value]) =>
                 eventSchemaToZod({
                   type: value?.eventSchema?.type || key,
                   zodDataSchema: value?.eventSchema?.data || zod.object({}),
-                  source: OrchestratorTerms.source(sourceName),
+                  to: OrchestratorTerms.source(sourceName),
                 }),
             ),
           };
@@ -360,11 +371,14 @@ export function createOrchestrationMachineV2<
               zodDataSchema: OrchestratorTerms.startSchema(
                 initialContextZodSchema,
               ),
-              source: OrchestratorTerms.source(sourceName),
-            })
+              to: OrchestratorTerms.source(sourceName),
+            }),
           ],
           emits: [
-            ...(config.initial ? [config.initial] : Object.keys(config.states)).map(item => {
+            ...(config.initial
+              ? [config.initial]
+              : Object.keys(config.states)
+            ).map((item) => {
               const obj = config.states[item];
               return eventSchemaToZod({
                 type:
@@ -373,14 +387,14 @@ export function createOrchestrationMachineV2<
                   '#unknown_event',
                 zodDataSchema: obj?.eventSchema?.data || zod.object({}),
                 source: OrchestratorTerms.source(sourceName),
-              })
+              });
             }),
             eventSchemaToZod({
               type: OrchestratorTerms.startError(sourceName),
               zodDataSchema: OrchestratorTerms.errorSchema(),
               source: OrchestratorTerms.source(sourceName),
             }),
-          ]
+          ],
         } as MachineEventSchema,
         orchestrationError: {
           emits: [
@@ -388,7 +402,7 @@ export function createOrchestrationMachineV2<
               type: OrchestratorTerms.error(sourceName),
               zodDataSchema: OrchestratorTerms.errorSchema(),
               source: OrchestratorTerms.source(sourceName),
-            })
+            }),
           ],
           accepts: Array.from(
             new Set(

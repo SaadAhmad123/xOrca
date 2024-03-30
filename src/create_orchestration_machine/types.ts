@@ -393,8 +393,8 @@ export type OrchestrationMachine<TLogic extends AnyActorLogic> = {
     sourceName?: string,
     initialContextZodSchema?: zod.ZodObject<any>,
   ) => {
-    orchestrationEvents: MachineEventSchema[]
-    orchestrationInit: MachineEventSchema,
-    orchestrationError: MachineEventSchema,
+    orchestrationEvents: MachineEventSchema[];
+    orchestrationInit: MachineEventSchema;
+    orchestrationError: MachineEventSchema;
   };
 };

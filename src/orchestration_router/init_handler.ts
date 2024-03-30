@@ -102,7 +102,7 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
         if (!logic) return [];
         await logger({
           type: 'START',
-          source: OrchestratorTerms.source(name), 
+          source: OrchestratorTerms.source(name),
           spanContext: spanContext,
           startTime,
           input: {
@@ -155,7 +155,9 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       } catch (e) {
         await persistablActor?.close();
         responses.push({
-          type: OrchestratorTerms.startError(name) as `xorca.${string}.start.error`,
+          type: OrchestratorTerms.startError(
+            name,
+          ) as `xorca.${string}.start.error`,
           data: {
             eventData: data,
             errorMessage: (e as Error)?.message,

@@ -2796,10 +2796,10 @@ xmlbuilder@~11.0.0:
   resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-11.0.1.tgz#be9bae1c8a046e76b31127726347d0ad7002beb3"
   integrity sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==
 
-xorca-cloudevent-router@0.2.15:
-  version "0.2.15"
-  resolved "https://registry.yarnpkg.com/xorca-cloudevent-router/-/xorca-cloudevent-router-0.2.15.tgz#92e09098ae71efa2a5f77ab83827b4ceb2a15de6"
-  integrity sha512-M5O4ZYFDh/CymwWMBsPiZAM1Vv0L3zGBlVS32fxo8OCW159os7pR4Rnx2GDyWMafGd2gWsP5xhN7nj0u4H8/Uw==
+xorca-cloudevent-router@^0.2.17:
+  version "0.2.17"
+  resolved "https://registry.yarnpkg.com/xorca-cloudevent-router/-/xorca-cloudevent-router-0.2.17.tgz#25cd204b9a5b4ad27ba837ee3e879f0ddca334c7"
+  integrity sha512-zpGnvt5/QByTbygaACRCKz/+JSMymcm/rXBpcsy8zKKhDaw/9sYEdXmG4uan/2UpxKGM0igiKYjfkuQGZ9U/fQ==
   dependencies:
     cloudevents "^8.0.0"
     zod "^3.22.4"

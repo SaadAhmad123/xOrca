@@ -144,7 +144,9 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
       } catch (e) {
         await persistablActor?.close();
         responses.push({
-          type: OrchestratorTerms.error(name) as `xorca.orchestrator.${string}.error`,
+          type: OrchestratorTerms.error(
+            name,
+          ) as `xorca.orchestrator.${string}.error`,
           data: {
             eventData: data,
             errorMessage: (e as Error)?.message,

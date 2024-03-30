@@ -10,7 +10,6 @@ import { createOrchestrationHandler } from '../../src/orchestration_router/orche
 import { summaryStateMachine } from './orchestration_router.spec.data';
 import { CloudEvent } from 'cloudevents';
 import { v4 as uuidv4 } from 'uuid';
-import { makeSubject } from '../../src/utils';
 import * as zod from 'zod';
 
 describe('The orchestration router init handler specs', () => {
@@ -54,7 +53,11 @@ describe('The orchestration router init handler specs', () => {
   const orchestrationHandler = createOrchestrationHandler(params);
 
   afterAll(() => {
-    fs.rmdirSync(rootDir, { recursive: true });
+    try {
+      //fs.rmdirSync(rootDir, { recursive: true });
+    } catch (e) {
+      console.error(e);
+    }
   });
 
   it('should process an initiated process if a valid event is provided', async () => {
@@ -81,6 +84,7 @@ describe('The orchestration router init handler specs', () => {
         data: {
           bookData: ['saad', 'ahmad'],
         },
+        executionunits: '1.5',
       }),
     );
     // The event is valid with 'evt.' prefix. However, the machine logic does not recognise the `books` bit
@@ -95,6 +99,7 @@ describe('The orchestration router init handler specs', () => {
         data: {
           bookData: ['saad', 'ahmad'],
         },
+        executionunits: '1.5',
       }),
     );
     expect(responses.length).toBe(1);

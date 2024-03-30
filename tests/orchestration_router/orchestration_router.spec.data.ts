@@ -1,5 +1,6 @@
 import { createOrchestrationMachineV2 } from '../../src/create_orchestration_machine/v2';
 import * as zod from 'zod';
+import { withDefaultActions } from '../../src/create_orchestration_machine/v2/utils';
 
 type TriState = 'TRUE' | 'FALSE' | 'ERRORED';
 
@@ -43,7 +44,7 @@ export const summaryStateMachine =
               },
               transformer: false,
               target: 'Summarise',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions('updateContext'),
             },
             'books.evt.fetch.error': {
               eventSchema: {
@@ -52,7 +53,7 @@ export const summaryStateMachine =
                 }),
               },
               target: 'Error',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions('updateContext'),
             },
           },
         },
@@ -71,7 +72,7 @@ export const summaryStateMachine =
                 }),
               },
               target: 'Regulate',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions('updateContext'),
             },
             'evt.gpt.summary.error': {
               eventSchema: {
@@ -80,7 +81,7 @@ export const summaryStateMachine =
                 }),
               },
               target: 'Error',
-              actions: ['updateContext', 'updateLogs'],
+              actions: withDefaultActions('updateContext'),
             },
           },
         },
@@ -109,7 +110,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions('updateContext'),
                     },
                     'evt.regulations.grounded.error': {
                       eventSchema: {
@@ -119,7 +120,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions('updateContext'),
                     },
                   },
                 },
@@ -149,7 +150,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions('updateContext'),
                     },
                     'evt.regulations.compliant.error': {
                       eventSchema: {
@@ -159,7 +160,7 @@ export const summaryStateMachine =
                         }),
                       },
                       target: 'Done',
-                      actions: ['updateContext', 'updateLogs'],
+                      actions: withDefaultActions('updateContext'),
                     },
                   },
                 },

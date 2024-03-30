@@ -165,7 +165,8 @@ export const safeZodToJSON = (schema: any) => {
 interface IEventSchemaToZod {
   type: string;
   zodDataSchema: zod.ZodObject<any>;
-  source: string;
+  source?: string;
+  to?: string;
 }
 
 /**
@@ -176,15 +177,16 @@ export function eventSchemaToZod({
   type,
   zodDataSchema,
   source,
+  to,
 }: IEventSchemaToZod) {
   return zodToJsonSchema(
     zod.object({
       id: zod.string().optional().describe('A UUID of this event'),
       subject: zod.string().describe('The process reference'),
       type: zod.literal(type).describe('The topic of the event'),
-      source: zod
-        .literal(encodeURI(source))
-        .describe('The orchestrator source name'),
+      source: (source ? zod.literal(encodeURI(source)) : zod.string()).describe(
+        'The event source name',
+      ),
       data: zodDataSchema,
       datacontenttype: zod.literal(
         'application/cloudevents+json; charset=UTF-8',
@@ -206,11 +208,15 @@ export function eventSchemaToZod({
         .describe(
           'Additional tracing info as per the [spec](https://www.w3.org/TR/trace-context/#tracestate-header)',
         ),
-      to: zod
-        .null()
-        .describe(
-          'The orchestrator does not respond to any event. Rather it is calculating the next event',
-        ),
+      to: to
+        ? zod
+            .literal(encodeURI(to))
+            .describe('The orchestrator is listening to event with field `to`')
+        : zod
+            .null()
+            .describe(
+              'The orchestrator does not respond to any event. Rather it is calculating the next event',
+            ),
       redirectTo: zod
         .string()
         .optional()
@@ -220,3 +226,23 @@ export function eventSchemaToZod({
     }),
   );
 }
+
+/**
+ * This function added the default actions to the action list
+ * The default actions are:
+ * - updateLogs
+ * - updateCheckpoint
+ * - updateExecutionUnits
+ *
+ * @param args - The other actions
+ * @returns
+ */
+export const withDefaultActions = (...args: string[]) =>
+  Array.from(
+    new Set([
+      ...(args || []),
+      'updateLogs',
+      'updateCheckpoint',
+      'updateExecutionUnits',
+    ]),
+  );

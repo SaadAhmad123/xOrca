@@ -60,6 +60,8 @@ export type PreWriterRecord = {
    * These logs include events emitted by the orchestrator, providing insight into its operational behavior.
    */
   orchestrationLogs?: string;
+
+  orchestrationExecutionUnits?: string;
 };
 
 /**
@@ -104,6 +106,9 @@ export function appendPreWriter(data: string, path: string): PreWriterRecord {
       version,
       orchestrationCheckpoints: JSON.stringify(
         context?.__orchestrationTime || [],
+      ),
+      orchestrationExecutionUnits: JSON.stringify(
+        context?.__cumulativeExecutionUnits || [],
       ),
     };
   } catch (e) {

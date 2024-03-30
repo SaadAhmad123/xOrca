@@ -6,6 +6,7 @@ import {
 import { CloudEvent } from 'cloudevents';
 import { matchTemplates } from 'xorca-cloudevent-router/dist/utils';
 import { OrchestrationRouterResponse } from './types';
+import { CloudEventRouterHandlerOptions } from 'xorca-cloudevent-router/dist/CloudEventRouter/types';
 
 export default class OrchectrationRouter extends CloudEventRouter {
   constructor(params: ICloudEventRouter) {
@@ -22,7 +23,7 @@ export default class OrchectrationRouter extends CloudEventRouter {
    */
   async cloudevents(
     events: CloudEvent<Record<string, any>>[],
-    errorOnNotFound?: boolean,
+    options?: CloudEventRouterHandlerOptions,
   ): Promise<OrchestrationRouterResponse[]> {
     const subjectToEvents = events.reduce(
       (acc, cur) => {
@@ -44,7 +45,7 @@ export default class OrchectrationRouter extends CloudEventRouter {
             try {
               const matchTemplateResp = matchTemplates(item.type, handlerKeys);
               if (!matchTemplateResp) {
-                if (!errorOnNotFound) return [];
+                if (!options?.errorOnNotFound) return [];
                 throw new CloudEventRouterError(
                   `[OrchestrationRouterError][cloudevents] No handler found for event.type=${item.type}. The accepts type are: ${handlerKeys.join(', ')}`,
                 );
@@ -74,6 +75,7 @@ export default class OrchectrationRouter extends CloudEventRouter {
               ];
             }
           }
+          await options?.responseCallback?.(resps).catch(console.error);
           return resps;
         }),
       )

@@ -156,6 +156,23 @@ export const assignLogsToContext = assign({
 });
 
 /**
+ * For an event, it checks the payload for field `__executionunits`
+ * and then appends the execution units of the orchestrations
+ */
+export const assignExecutionUnitsToContext = assign({
+  __cumulativeExecutionUnits: ({ event, context }: any) => {
+    console.log({ event, context });
+    return [
+      ...(context?.__cumulativeExecutionUnits || []),
+      {
+        event_type: event.type,
+        units: event?.__cloudevent?.executionunits || (0).toString(),
+      },
+    ];
+  },
+});
+
+/**
  * A action which can update the orchestration time
  * and log the checkpoint
  */

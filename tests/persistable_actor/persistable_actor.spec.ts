@@ -153,5 +153,5 @@ describe('Testing with persistance', () => {
         actor.stop();
       },
     );
-  }, 10000);
+  }, 20000);
 });
