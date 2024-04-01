@@ -61,6 +61,10 @@ export type PreWriterRecord = {
    */
   orchestrationLogs?: string;
 
+  /**
+   * A JSON string representing the number of execution units consumed during the
+   * span of the orcehstration
+   */
   orchestrationExecutionUnits?: string;
 };
 
