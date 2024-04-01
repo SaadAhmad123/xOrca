@@ -98,6 +98,7 @@ export function appendPreWriter(data: string, path: string): PreWriterRecord {
                   '__machineLogs',
                   '__traceId',
                   '__orchestrationTime',
+                  '__cumulativeExecutionUnits',
                 ].includes(key),
             )
             .map(([key, value]) => ({ [key]: value })),
