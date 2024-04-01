@@ -20,6 +20,7 @@ import {
   assignEventDataToContext,
   assignOrchestrationTimeToContext,
   assignLogsToContext,
+  assignExecutionUnitsToContext,
   makeSubject,
   parseSubject,
 } from './utils';
@@ -46,7 +47,10 @@ import { createOrchestrationInitHandler } from './orchestration_router/init_hand
 import { createOrchestrationHandler } from './orchestration_router/orchestration_handler';
 import { appendPreWriter, PreWriterRecord } from './utils/appendPreWriter';
 import { createOrchestrationMachineV2 } from './create_orchestration_machine/v2';
+import { withDefaultActions } from './create_orchestration_machine/v2/utils';
+
 export {
+  withDefaultActions,
   createOrchestrationRouter,
   OrchestrationRouter,
   createOrchestrationInitHandler,
@@ -61,6 +65,7 @@ export {
   createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,
+  assignExecutionUnitsToContext,
   assignOrchestrationTimeToContext,
   appendPreWriter,
   PreWriterRecord,
