@@ -147,7 +147,7 @@ export type OrchestrationTransitionConfig<
    * Refer to [Stately.ai Guards](https://stately.ai/docs/guards#multiple-guarded-transitions) for more information on guards.
    * It is defined in the `gruads` key of the options.
    */
-  guard?: string;
+  guard?: string | {type: string, params: Record<string,any>};
   /**
    * Description of the transition, providing additional context or information about its purpose.
    * This can be helpful for documentation and understanding the intended behavior of the transition.
