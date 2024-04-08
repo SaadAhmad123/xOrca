@@ -280,7 +280,7 @@ export type OrchestrationStateConfig<
    * Configuration for an abrupt state transition if this state is reached.
    * Defines a transition to be executed whenever this state is reached, regardless of the current event.
    */
-  always?: OrchestrationTransitionConfig;
+  always?: OrchestrationTransitionConfig<TEventTransformer> | OrchestrationTransitionConfig<TEventTransformer>[];
   /**
    * Description of the state, providing additional context or information about its purpose.
    * This can be helpful for documentation and understanding the intended behavior of the state.
