@@ -147,7 +147,7 @@ export type OrchestrationTransitionConfig<
    * Refer to [Stately.ai Guards](https://stately.ai/docs/guards#multiple-guarded-transitions) for more information on guards.
    * It is defined in the `gruads` key of the options.
    */
-  guard?: string | {type: string, params: Record<string,any>};
+  guard?: string | { type: string; params: Record<string, any> };
   /**
    * Description of the transition, providing additional context or information about its purpose.
    * This can be helpful for documentation and understanding the intended behavior of the transition.
@@ -280,7 +280,9 @@ export type OrchestrationStateConfig<
    * Configuration for an abrupt state transition if this state is reached.
    * Defines a transition to be executed whenever this state is reached, regardless of the current event.
    */
-  always?: OrchestrationTransitionConfig<TEventTransformer> | OrchestrationTransitionConfig<TEventTransformer>[];
+  always?:
+    | OrchestrationTransitionConfig<TEventTransformer>
+    | OrchestrationTransitionConfig<TEventTransformer>[];
   /**
    * Description of the state, providing additional context or information about its purpose.
    * This can be helpful for documentation and understanding the intended behavior of the state.

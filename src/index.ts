@@ -50,7 +50,6 @@ import { createOrchestrationMachineV2 } from './create_orchestration_machine/v2'
 import { withDefaultActions } from './create_orchestration_machine/v2/utils';
 
 export {
-  withDefaultActions,
   createOrchestrationRouter,
   OrchestrationRouter,
   createOrchestrationInitHandler,
@@ -59,14 +58,15 @@ export {
   CloudOrchestrationActor,
   withPersistableActor,
   createCloudOrchestrationActor,
+  withDefaultActions,
   orchestrateCloudEvents,
   createOrchestrationMachine,
   createOrchestrationMachineV2,
-  createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,
   assignExecutionUnitsToContext,
   assignOrchestrationTimeToContext,
+  createCloudEvent,
   appendPreWriter,
   PreWriterRecord,
   makeSubject as makeCloudEventSubject,

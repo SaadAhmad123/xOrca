@@ -10,7 +10,7 @@ import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestrati
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * @deprecated
+ * @deprecated - Use createOrchestrationRouter instead
  * Orchestrates cloud events by processing each event, managing the state with persistent actors,
  * and emitting new cloud events based on the defined orchestration logic.
  *

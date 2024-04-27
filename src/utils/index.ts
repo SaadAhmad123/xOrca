@@ -98,6 +98,7 @@ export function createCloudEvent(params: ICreateCloudEvent) {
 }
 
 /**
+ * @deprecated
  * An XState action that assigns event data to the context, excluding the 'type' property of the event.
  * This action is useful in scenarios where the context needs to be updated with new data from an event,
  * but the event's type should not overwrite any existing context properties.
@@ -110,6 +111,7 @@ export const assignEventDataToContext = assign(({ event, context }) => {
 });
 
 /**
+ * @deprecated
  * An XState action that appends machine logs to the context, including information
  * from the current event and context.
  *
@@ -156,12 +158,12 @@ export const assignLogsToContext = assign({
 });
 
 /**
+ * @deprecated
  * For an event, it checks the payload for field `__executionunits`
  * and then appends the execution units of the orchestrations
  */
 export const assignExecutionUnitsToContext = assign({
   __cumulativeExecutionUnits: ({ event, context }: any) => {
-    console.log({ event, context });
     return [
       ...(context?.__cumulativeExecutionUnits || []),
       {
@@ -173,6 +175,7 @@ export const assignExecutionUnitsToContext = assign({
 });
 
 /**
+ * @deprecated
  * A action which can update the orchestration time
  * and log the checkpoint
  */
