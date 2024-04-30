@@ -4,6 +4,7 @@ import { MachineSnapshot } from 'xstate';
 import { generateShortUuid } from './utils';
 
 /**
+ * 
  * `Emit` class facilitates the creation and management of typed events within a state machine.
  * It enables events to carry strongly-typed names and data, validated via Zod schemas, and handled by
  * a custom function. It is ideal for complex state management scenarios where events must adhere

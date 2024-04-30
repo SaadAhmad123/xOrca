@@ -1,7 +1,7 @@
 import { createOrchestrationMachineV3 } from '../../../src/create_orchestration_machine/v3';
-import Emit from '../../../src/create_orchestration_machine/v3/emit';
+import Emit from '../../../src/create_orchestration_machine/v3/Emit';
 import * as zod from 'zod';
-import Action from '../../../src/create_orchestration_machine/v3/action';
+import Action from '../../../src/create_orchestration_machine/v3/Action';
 import { assign } from 'xstate';
 import {
   withBasicActions,

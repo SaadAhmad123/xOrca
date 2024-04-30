@@ -2,6 +2,7 @@ import { MachineSnapshot } from 'xstate';
 import { generateShortUuid } from './utils';
 
 /**
+ * 
  * Represents a condition (guard) within a state machine context using XState. Guards in XState are
  * boolean-returning functions that determine the feasibility of a transition or action based on
  * current state conditions. This `Guard` class allows for defining such conditions with a name and a

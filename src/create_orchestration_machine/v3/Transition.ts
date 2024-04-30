@@ -1,7 +1,7 @@
 import { OrchestrationTransitionConfig } from '../types';
-import Action from './action';
+import Action from './Action';
 import * as zod from 'zod';
-import { BasicContext, GuardedTransitionV3 } from './types';
+import { GuardedTransitionV3 } from './types';
 import { withBasicActions } from './basic_actions';
 
 /**

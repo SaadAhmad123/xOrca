@@ -1,5 +1,5 @@
 import { assign } from 'xstate';
-import Action from './action';
+import Action from './Action';
 import { BasicContext } from './types';
 
 /**

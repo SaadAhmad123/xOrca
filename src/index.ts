@@ -53,10 +53,10 @@ import {
   BasicActions,
   withBasicActions,
 } from './create_orchestration_machine/v3/basic_actions';
-import Action from './create_orchestration_machine/v3/action';
-import Guard from './create_orchestration_machine/v3/guard';
-import Emit from './create_orchestration_machine/v3/emit';
-import Transition from './create_orchestration_machine/v3/transition';
+import Action from './create_orchestration_machine/v3/Action';
+import Guard from './create_orchestration_machine/v3/Guard';
+import Emit from './create_orchestration_machine/v3/Emit';
+import Transition from './create_orchestration_machine/v3/Transition';
 import { createOrchestrationMachineV3 } from './create_orchestration_machine/v3';
 import {
   OrchestrationMachineConfigV3,

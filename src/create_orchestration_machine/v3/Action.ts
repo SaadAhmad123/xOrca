@@ -2,6 +2,7 @@ import { ActionFunction, EventObject } from 'xstate';
 import { generateShortUuid } from './utils';
 
 /**
+ * 
  * A generic class for defining actions within an XState state machine context. It encapsulates
  * action logic and associates it with a unique identifier. Actions defined using this class can
  * be used for handling state transitions or performing side effects in response to events in the state machine.
