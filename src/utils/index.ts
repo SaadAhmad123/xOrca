@@ -98,7 +98,8 @@ export function createCloudEvent(params: ICreateCloudEvent) {
 }
 
 /**
- * @deprecated
+ * @deprecated - only compatible with createOrchestrationMachineV2. Use BasicActions object if using createOrchestrationMachineV3
+ *
  * An XState action that assigns event data to the context, excluding the 'type' property of the event.
  * This action is useful in scenarios where the context needs to be updated with new data from an event,
  * but the event's type should not overwrite any existing context properties.
@@ -111,7 +112,8 @@ export const assignEventDataToContext = assign(({ event, context }) => {
 });
 
 /**
- * @deprecated
+ * @deprecated - only compatible with createOrchestrationMachineV2. Use BasicActions object if using createOrchestrationMachineV3
+ *
  * An XState action that appends machine logs to the context, including information
  * from the current event and context.
  *
@@ -141,7 +143,7 @@ export const assignEventDataToContext = assign(({ event, context }) => {
  * ```
  */
 export const assignLogsToContext = assign({
-  __machineLogs: ({ event, context }) => {
+  __machineLogs: ({ event, context }: any) => {
     const { __machineLogs, __cloudevent, ...contextToLog } = context || {};
     const { __cloudevent: ce, ...eventLog } = event || {};
     return [
@@ -158,7 +160,8 @@ export const assignLogsToContext = assign({
 });
 
 /**
- * @deprecated
+ * @deprecated - only compatible with createOrchestrationMachineV2. Use BasicActions object if using createOrchestrationMachineV3
+ *
  * For an event, it checks the payload for field `__executionunits`
  * and then appends the execution units of the orchestrations
  */
@@ -175,7 +178,8 @@ export const assignExecutionUnitsToContext = assign({
 });
 
 /**
- * @deprecated
+ * @deprecated - only compatible with createOrchestrationMachineV2. Use BasicActions object if using createOrchestrationMachineV3
+ *
  * A action which can update the orchestration time
  * and log the checkpoint
  */

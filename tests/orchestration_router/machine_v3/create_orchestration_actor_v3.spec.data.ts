@@ -1,16 +1,20 @@
 import { createOrchestrationMachineV3 } from '../../../src/create_orchestration_machine/v3';
-import Emit from '../../../src/create_orchestration_machine/v3/Emit';
+import Emit from '../../../src/create_orchestration_machine/v3/emit';
 import * as zod from 'zod';
-import Transition from '../../../src/create_orchestration_machine/v3/Transition';
-import Action from '../../../src/create_orchestration_machine/v3/Action';
+import Action from '../../../src/create_orchestration_machine/v3/action';
 import { assign } from 'xstate';
-import { BasicContext } from '../../../src/create_orchestration_machine/v3/types';
+import {
+  withBasicActions,
+  BasicContext,
+  Transition,
+  Guard,
+} from '../../../src';
 
 type SummaryStateMachineContext = {
   bookId: string;
   bookData?: string[];
   summary?: string;
-  llm: "openai" | "anthropic",
+  llm: 'openai' | 'anthropic';
 } & BasicContext;
 
 export const summaryMachineV3 = createOrchestrationMachineV3<
@@ -35,22 +39,22 @@ export const summaryMachineV3 = createOrchestrationMachineV3<
         }),
       }),
       on: [
-        new Transition('evt.fetch.books.success', {
+        new Transition<SummaryStateMachineContext>('evt.fetch.books.success', {
           target: 'Summarise',
           schema: zod.object({
             bookContent: zod.string().array(),
           }),
-          actions: [
+          actions: withBasicActions(
             new Action({
-              name: 'assignContent',
-              handler: assign({
-                bookData: ({ event, context }) => [
-                  ...(context.bookData || []),
-                  ...event.bookContent,
-                ],
-              }),
+              name: 'assignBook',
+              handler: assign(({ event, context }) => ({
+                bookData: event.bookContent,
+              })),
             }),
-          ],
+          ),
+        }).guard({
+          guard: new Guard({ name: 'saad', handler: () => false }),
+          target: 'Summarise',
         }),
         new Transition('evt.fetch.books.error', {
           target: 'Error',
@@ -79,22 +83,22 @@ export const summaryMachineV3 = createOrchestrationMachineV3<
           schema: zod.object({
             summary: zod.string(),
           }),
-          actions: [
+          actions: withBasicActions(
             new Action({
               name: 'assignSummary',
               handler: assign(({ event, context }) => ({
                 summary: event.summary,
               })),
             }),
-          ],
+          ),
         }),
-        new Transition('evt.summary.create.success', {
+        new Transition('evt.summary.create.error', {
           target: 'Error',
         }),
-        new Transition('evt.summary.create.success', {
+        new Transition('evt.summary.create.timeout', {
           target: 'Error',
         }),
-        new Transition('evt.summary.create.success', {
+        new Transition('sys.cmd.summary.create.error', {
           target: 'Error',
         }),
       ],

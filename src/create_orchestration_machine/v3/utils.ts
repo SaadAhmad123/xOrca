@@ -1,9 +1,14 @@
-import { OrchestrationStateConfig } from '../types';
+import {
+  OrchestrationStateConfig,
+  OrchestrationTransitionConfig,
+} from '../types';
 import {
   BasicContext,
   OrchestrationMachineConfigV3,
   OrchestrationStateConfigV3,
 } from './types';
+import { v4 as uuidv4 } from 'uuid';
+import { createHash } from 'crypto';
 
 export function compileMachine<
   TContext extends BasicContext,
@@ -39,19 +44,25 @@ export function compileMachine<
         actionFunctions[item.ref] = item.handler;
         return item.ref;
       }),
-      on: Object.assign(
-        {},
-        ...(state.on || []).map((item) => {
+      on: (state.on || []).reduce(
+        (acc, cur) => {
           actionFunctions = {
             ...actionFunctions,
-            ...item.actionFunctions,
+            ...cur.actionFunctions,
           };
           guardFunctions = {
             ...guardFunctions,
-            ...item.guardFunctions,
+            ...cur.guardFunctions,
           };
-          return { [item.ref]: item.handler };
-        }),
+          if (acc[cur.ref]) {
+            throw new Error(`Duplicate transition events ${cur.ref}`);
+          }
+          return {
+            ...acc,
+            [cur.ref]: cur.handler,
+          };
+        },
+        {} as Record<string, OrchestrationTransitionConfig[]>,
       ),
       always: (() => {
         if (!state.always) return undefined;
@@ -118,3 +129,26 @@ export function compileMachine<
     emits: emitFunctions,
   };
 }
+
+
+function toBase62(num: bigint) {
+  const base = 62;
+  const digits = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+  while (num > 0) {
+    result = digits.charAt(Number(num % BigInt(base))) + result;
+    num /= BigInt(base);
+  }
+  return result;
+}
+
+export function generateShortUuid() {
+  const fullUuid = uuidv4();
+  const hasher = createHash('sha256');
+  hasher.update(fullUuid);
+  const hash = hasher.digest('hex');
+  const hashNumber = BigInt('0x' + hash);
+  const encoded = toBase62(hashNumber);
+  return encoded.substring(0, 8);
+}
+

@@ -1,25 +1,24 @@
-import { assign } from "xstate";
-import Action from "./Action";
-import { BasicContext } from "./types";
+import { assign } from 'xstate';
+import Action from './action';
+import { BasicContext } from './types';
 
 /**
  * An XState action that assigns event data to the context, excluding the 'type' property of the event.
  * This action is useful in scenarios where the context needs to be updated with new data from an event,
  * but the event's type should not overwrite any existing context properties.
  */
-const updateContext = new Action<Record<string,any>>({
-  name: "updateContext",
-  handler: assign(({event, context}) => {
+const updateContext = new Action<Record<string, any>>({
+  name: 'updateContext',
+  handler: assign(({ event, context }) => {
     const { type, ...restOfEvent } = event;
     return { ...context, ...restOfEvent };
-  })
-})
-
+  }),
+});
 
 /**
  * An XState action that appends machine logs to the context, including information
  * from the current event and context.
- * 
+ *
  * This action is designed for logging purposes within an XState machine. It appends
  * a log entry to the '__machineLogs' property in the context. Each log entry includes
  * information such as CloudEvent ID, CloudEvent data, event details, context details,
@@ -28,17 +27,18 @@ const updateContext = new Action<Record<string,any>>({
  * The resulting '__machineLogs' array provides a history of events that we recieved and their associated
  * data during the execution of the state machine.
  */
-const updateLogs = new Action<BasicContext & {[key:string]: any}>({
+const updateLogs = new Action<BasicContext & { [key: string]: any }>({
   name: 'updateLogs',
   handler: assign({
     __machineLogs: ({ event, context }) => {
-      const { 
-        __machineLogs, 
+      const {
+        __machineLogs,
         __cloudevent,
         __traceId,
         __orchestrationTime,
         __cumulativeExecutionUnits,
-         ...contextToLog } = context || {};
+        ...contextToLog
+      } = context || {};
       const { __cloudevent: ce, ...eventLog } = event || {};
       return [
         ...(__machineLogs || []),
@@ -52,13 +52,15 @@ const updateLogs = new Action<BasicContext & {[key:string]: any}>({
       ];
     },
   }),
-})
+});
 
 /**
  * A action which can update the orchestration time
  * and log the checkpoint
  */
-export const updateCheckpoint = new Action<BasicContext & {[key:string]: any}>({
+export const updateCheckpoint = new Action<
+  BasicContext & { [key: string]: any }
+>({
   name: 'updateCheckpoint',
   handler: assign({
     __orchestrationTime: ({ event, context }) => {
@@ -75,10 +77,14 @@ export const updateCheckpoint = new Action<BasicContext & {[key:string]: any}>({
         },
       ];
     },
-  })
-})
+  }),
+});
 
-const updateExecutionUnits = new Action<BasicContext & {[key:string]: any}>({
+/**
+ * For an event, it checks the payload for field `__executionunits`
+ * and then appends the execution units of the orchestrations
+ */
+const updateExecutionUnits = new Action<BasicContext & { [key: string]: any }>({
   name: 'updateExecutionUnits',
   handler: assign({
     __cumulativeExecutionUnits: ({ event, context }: any) => {
@@ -90,8 +96,8 @@ const updateExecutionUnits = new Action<BasicContext & {[key:string]: any}>({
         },
       ];
     },
-  })
-})
+  }),
+});
 
 /**
  * A dictionary to reference the basic actions
@@ -101,7 +107,7 @@ export const BasicActions = {
   updateLogs,
   updateCheckpoint,
   updateExecutionUnits,
-}
+};
 
 /**
  * This function adds the default actions to the action list
@@ -113,16 +119,24 @@ export const BasicActions = {
  * @param args - The other actions
  * @returns a list of all the actions
  */
-export function withBasicActions(...args: Action<BasicContext & {[key: string]: any}>[]) {
+export function withBasicActions<
+  TContext extends Record<string, any> = BasicContext & { [key: string]: any },
+>(...args: Action<TContext>[]): Action<TContext>[] {
+  const aggregate = [
+    ...(args || []),
+    updateLogs,
+    updateCheckpoint,
+    updateExecutionUnits,
+  ];
   return Object.values(
-    [
-      ...(args || []),
-      updateLogs,
-      updateCheckpoint,
-      updateExecutionUnits,
-    ].reduce((acc, cur) => ({
-      ...acc,
-      [cur.ref]: cur
-    }), {} as Record<string, Action<BasicContext & {[key: string]: any}>>)
-  )
+    aggregate.reduce(
+      (acc, cur) => {
+        return {
+          ...acc,
+          [cur.ref]: cur,
+        };
+      },
+      {} as Record<string, any>,
+    ),
+  );
 }

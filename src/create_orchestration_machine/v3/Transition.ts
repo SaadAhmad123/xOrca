@@ -1,7 +1,8 @@
 import { OrchestrationTransitionConfig } from '../types';
-import Action from './Action';
+import Action from './action';
 import * as zod from 'zod';
-import { GuardedTransitionV3 } from './types';
+import { BasicContext, GuardedTransitionV3 } from './types';
+import { withBasicActions } from './basic_actions';
 
 /**
  * Manages state transitions within a state machine, allowing configuration of transition conditions, actions, and targets.
@@ -13,7 +14,7 @@ import { GuardedTransitionV3 } from './types';
  */
 export default class Transition<
   TContext extends Record<string, any>,
-  TEventData extends zod.ZodObject<any>,
+  TEventData extends zod.ZodObject<any> = any,
 > {
   private guards: GuardedTransitionV3<TContext>[] = [];
   private params: {
@@ -31,7 +32,7 @@ export default class Transition<
    * @param config Configuration object for the transition:
    *  - `target`: The state machine's target state for this transition.
    *  - `schema`: Optional Zod schema to validate the event data.
-   *  - `actions`: Optional array of actions to perform during the transition.
+   *  - `actions`: Optional array of actions to perform during the transition. Default is all the actions provided by withBasicActions()
    *  - `description`: Optional description of the transition's purpose and functionality.
    */
   constructor(
@@ -46,6 +47,7 @@ export default class Transition<
     this.params = {
       on,
       ...config,
+      actions: config.actions || withBasicActions(),
     };
   }
 
@@ -56,6 +58,7 @@ export default class Transition<
    */
   public guard(guard: GuardedTransitionV3<TContext>) {
     this.guards.push(guard);
+    return this;
   }
 
   /**

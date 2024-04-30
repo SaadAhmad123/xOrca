@@ -22,7 +22,8 @@ import * as zod from 'zod';
 import { OrchestratorTerms } from '../utils';
 
 /**
- * @deprecated
+ * @deprecated - use createOrchestrationMachineV3 instead
+ * 
  * Creates an orchestration state machine designed to run in a short-lived serverless environment.
  * The machine returned by this function can be used by the `CloudOrchestrationActor` for execution.
  * This machine adheres to the State Machine defined in XState [XState Documentation](https://stately.ai/docs/machines),

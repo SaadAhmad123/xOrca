@@ -1,5 +1,5 @@
 import { ActionFunction, EventObject } from 'xstate';
-import { v4 as uuidv4 } from 'uuid';
+import { generateShortUuid } from './utils';
 
 /**
  * A generic class for defining actions within an XState state machine context. It encapsulates
@@ -53,7 +53,7 @@ export default class Action<TContext extends Record<string, any>> {
       >;
     },
   ) {
-    this.id = `action_${this.params.name}_${uuidv4()}`;
+    this.id = `${this.params.name}_${generateShortUuid()}`;
   }
 
   /**

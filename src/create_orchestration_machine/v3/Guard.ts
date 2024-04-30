@@ -1,5 +1,5 @@
 import { MachineSnapshot } from 'xstate';
-import { v4 as uuidv4 } from 'uuid';
+import { generateShortUuid } from './utils';
 
 /**
  * Represents a condition (guard) within a state machine context using XState. Guards in XState are
@@ -42,7 +42,7 @@ export default class Guard<TContext extends Record<string, any>> {
       ) => boolean;
     },
   ) {
-    this.id = `guard_${this.params.name}_${uuidv4()}`;
+    this.id = `${this.params.name}_${generateShortUuid()}`;
   }
 
   /**

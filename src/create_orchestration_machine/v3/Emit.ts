@@ -1,7 +1,7 @@
 import { OnOrchestrationStateEmit } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 import * as zod from 'zod';
 import { MachineSnapshot } from 'xstate';
+import { generateShortUuid } from './utils';
 
 /**
  * `Emit` class facilitates the creation and management of typed events within a state machine.
@@ -73,7 +73,7 @@ export default class Emit<
       ) => zod.infer<TEmitData>;
     },
   ) {
-    this.id = `emit_${this.params.name}_${uuidv4()}`;
+    this.id = `${this.params.name}_${generateShortUuid()}`;
   }
 
   /**

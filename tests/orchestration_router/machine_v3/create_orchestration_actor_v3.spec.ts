@@ -33,8 +33,9 @@ describe('V3 test', () => {
     ],
     initialContextZodSchema: zod.object({
       bookId: zod.string(),
-      llm: zod.enum(["openai", "anthropic"])
+      llm: zod.enum(['openai', 'anthropic']),
     }),
+    //logger: async (params) => console.log(params)
   });
 
   afterAll(() => {
@@ -56,6 +57,7 @@ describe('V3 test', () => {
           processId,
           context: {
             bookId: '1223.pdf',
+            llm: 'openai',
           },
           version: stateMachineVersion,
         },
@@ -95,7 +97,5 @@ describe('V3 test', () => {
     ]);
 
     expect(response.length).toBe(0);
-
-    console.log(JSON.stringify(summaryMachineV3.getOrchestrationEvents?.() || {}, null, 2));
   });
 });
