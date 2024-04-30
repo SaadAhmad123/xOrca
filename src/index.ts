@@ -49,28 +49,55 @@ import { appendPreWriter, PreWriterRecord } from './utils/appendPreWriter';
 import { createOrchestrationMachineV2 } from './create_orchestration_machine/v2';
 import { withDefaultActions } from './create_orchestration_machine/v2/utils';
 
+import {
+  BasicActions,
+  withBasicActions,
+} from './create_orchestration_machine/v3/basic_actions';
+import Action from './create_orchestration_machine/v3/action';
+import Guard from './create_orchestration_machine/v3/guard';
+import Emit from './create_orchestration_machine/v3/emit';
+import Transition from './create_orchestration_machine/v3/transition';
+import { createOrchestrationMachineV3 } from './create_orchestration_machine/v3';
+import {
+  OrchestrationMachineConfigV3,
+  OrchestrationStateConfigV3,
+  GuardedTransitionV3,
+  BasicContext,
+} from './create_orchestration_machine/v3/types';
+
 export {
-  withDefaultActions,
+  BasicActions,
+  withBasicActions,
+  Action,
+  Emit,
+  Guard,
+  Transition,
+  createOrchestrationMachineV3,
   createOrchestrationRouter,
-  OrchestrationRouter,
   createOrchestrationInitHandler,
   createOrchestrationHandler,
-  PersistableActor,
-  CloudOrchestrationActor,
   withPersistableActor,
   createCloudOrchestrationActor,
+  withDefaultActions,
   orchestrateCloudEvents,
   createOrchestrationMachine,
   createOrchestrationMachineV2,
-  createCloudEvent,
   assignEventDataToContext,
   assignLogsToContext,
   assignExecutionUnitsToContext,
   assignOrchestrationTimeToContext,
+  createCloudEvent,
   appendPreWriter,
-  PreWriterRecord,
   makeSubject as makeCloudEventSubject,
   parseSubject as parseCloudEventSubject,
+  OrchestrationRouter,
+  PersistableActor,
+  CloudOrchestrationActor,
+  PreWriterRecord,
+  OrchestrationMachineConfigV3,
+  OrchestrationStateConfigV3,
+  BasicContext,
+  GuardedTransitionV3,
   PersistableActorInput,
   OnOrchestrationEvent,
   OnOrchestrationState,

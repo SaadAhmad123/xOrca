@@ -80,7 +80,7 @@ describe('The orchestration router init handler specs', () => {
           bookData: ['saad', 'ahmad'],
         },
       }),
-    ]); 
+    ]);
     expect(responses.length).toBe(0);
 
     responses = await orchestrationRouter.cloudevents([

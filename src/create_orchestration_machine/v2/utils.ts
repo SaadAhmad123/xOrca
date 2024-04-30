@@ -228,6 +228,10 @@ export function eventSchemaToZod({
 }
 
 /**
+ * @deprecated - Use withBasicActions instead, it is compatible with orchestration machine v3
+ *
+ * This function is compatible with orchestration machine v2
+ *
  * This function added the default actions to the action list
  * The default actions are:
  * - updateLogs
