@@ -58,14 +58,16 @@ export default class Emit<
    * Initializes a new instance of the `Emit` class configured for event handling.
    *
    * @param params An object containing the necessary configurations:
-   *  - `name`: The name of the event, which is included in the unique identifier.
+   *  - `name`: [Optional] The name of the event handler, which is included in the unique identifier. By default, it is the same as the event
+   *  - `event`: The name of the event emitted by the handler
    *  - `schema`: A Zod schema to validate the event's data structure.
    *  - `handler`: A function that processes the event using the provided state context and a snapshot
    *    of the state machine, returning data that matches the defined schema.
    */
   constructor(
     private params: {
-      name: TEmit;
+      name?: string;
+      event: TEmit;
       schema: TEmitData;
       handler: (
         id: string,
@@ -74,7 +76,8 @@ export default class Emit<
       ) => zod.infer<TEmitData>;
     },
   ) {
-    this.id = `${this.params.name}_${generateShortUuid()}`;
+    this.params.name = this.params.name || this.params.event
+    this.id = this.params.name;
   }
 
   /**
@@ -101,7 +104,7 @@ export default class Emit<
       const data = this.params.handler(...args);
       this.params.schema.parse(data); // Validates the data against the schema
       return {
-        type: this.params.name,
+        type: this.params.event,
         data,
       };
     };

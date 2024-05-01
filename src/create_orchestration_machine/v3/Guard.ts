@@ -43,7 +43,7 @@ export default class Guard<TContext extends Record<string, any>> {
       ) => boolean;
     },
   ) {
-    this.id = `${this.params.name}_${generateShortUuid()}`;
+    this.id = this.params.name;
   }
 
   /**

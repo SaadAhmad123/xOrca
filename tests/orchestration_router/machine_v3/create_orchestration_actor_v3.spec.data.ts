@@ -30,7 +30,8 @@ export const summaryMachineV3 = createOrchestrationMachineV3<
   states: {
     FetchData: {
       emit: new Emit({
-        name: 'cmd.fetch.books',
+        name: "fetchBooks",
+        event: 'cmd.fetch.books',
         schema: zod.object({
           bookId: zod.string(),
         }),
@@ -69,7 +70,7 @@ export const summaryMachineV3 = createOrchestrationMachineV3<
     },
     Summarise: {
       emit: new Emit({
-        name: 'cmd.summary.create',
+        event: 'cmd.summary.create',
         schema: zod.object({
           content: zod.string(),
         }),

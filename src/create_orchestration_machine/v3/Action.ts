@@ -54,7 +54,7 @@ export default class Action<TContext extends Record<string, any>> {
       >;
     },
   ) {
-    this.id = `${this.params.name}_${generateShortUuid()}`;
+    this.id = this.params.name;
   }
 
   /**
