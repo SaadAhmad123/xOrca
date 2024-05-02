@@ -65,6 +65,7 @@ import {
   BasicContext,
   BasicEventObject,
 } from './create_orchestration_machine/v3/types';
+import { generateShortUuid } from './create_orchestration_machine/v3/utils';
 
 export {
   BasicActions,
@@ -79,6 +80,7 @@ export {
   createOrchestrationHandler,
   withPersistableActor,
   createCloudOrchestrationActor,
+  generateShortUuid,
   withDefaultActions,
   orchestrateCloudEvents,
   createOrchestrationMachine,

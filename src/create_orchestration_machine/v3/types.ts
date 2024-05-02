@@ -92,9 +92,9 @@ export type GuardedTransitionV3<
  * Represents the standard context for a state machine, incorporating critical metadata that enhances
  * monitoring and analysis of the state machine's operation. This context is designed to be extended with
  * specific state data for a customized state machine context.
- * 
+ *
  * @typeparam TData The type of additional data fields that can be added to the basic context structure.
- * 
+ *
  * Attributes:
  * - `__traceId`: An optional OpenTelemetry trace ID that uniquely identifies the workflow's execution trace,
  *                facilitating the tracing of transactions and operations across distributed systems.

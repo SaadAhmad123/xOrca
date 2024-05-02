@@ -1,6 +1,23 @@
-import { ActionFunction, EventObject } from 'xstate';
+import { ActionFunction } from 'xstate';
 import { generateShortUuid } from './utils';
 import { BasicContext, BasicEventObject } from './types';
+
+type ActionsParams<
+  TContext extends Record<string, any>,
+  TEventData extends Record<string, any>,
+> = {
+  name: string;
+  handler: ActionFunction<
+    BasicContext<TContext>,
+    BasicEventObject<TEventData>,
+    BasicEventObject<TEventData>,
+    any,
+    any,
+    any,
+    any,
+    any
+  >;
+};
 
 /**
  *
@@ -37,6 +54,7 @@ export default class Action<
   }
 
   private id: string;
+  private params: ActionsParams<TContext, TEventData>;
 
   /**
    * Initializes a new instance of the `Action` class with a specified name and handler function.
@@ -46,20 +64,27 @@ export default class Action<
    * - `handler`: An ActionFunction from XState designed to execute based on the current machine context and the event that triggered the action.
    */
   constructor(
-    private params: {
-      name: string;
-      handler: ActionFunction<
-        BasicContext<TContext>,
-        BasicEventObject<TEventData>,
-        BasicEventObject<TEventData>,
-        any,
-        any,
-        any,
-        any,
-        any
-      >;
-    },
+    params:
+      | ActionsParams<TContext, TEventData>
+      | ActionFunction<
+          BasicContext<TContext>,
+          BasicEventObject<TEventData>,
+          BasicEventObject<TEventData>,
+          any,
+          any,
+          any,
+          any,
+          any
+        >,
   ) {
+    if (typeof params === 'function') {
+      this.params = {
+        name: generateShortUuid(),
+        handler: params,
+      };
+    } else {
+      this.params = params;
+    }
     this.id = this.params.name;
   }
 

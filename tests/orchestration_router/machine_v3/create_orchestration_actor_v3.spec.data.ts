@@ -5,7 +5,6 @@ import Action from '../../../src/create_orchestration_machine/v3/Action';
 import { assign } from 'xstate';
 import {
   withBasicActions,
-  BasicContext,
   Transition,
   Guard,
 } from '../../../src';
@@ -86,12 +85,11 @@ export const summaryMachineV3 =
               summary: zod.string(),
             }),
             actions: withBasicActions(
-              new Action({
-                name: 'assignSummary',
-                handler: assign(({ event, context }) => ({
+              new Action(
+                assign(({ event, context }) => ({
                   summary: event.summary,
                 })),
-              }),
+              ),
             ),
           }),
           new Transition('evt.summary.create.error', {

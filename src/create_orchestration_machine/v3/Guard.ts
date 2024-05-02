@@ -2,6 +2,17 @@ import { MachineSnapshot } from 'xstate';
 import { generateShortUuid } from './utils';
 import { BasicContext, BasicEventObject } from './types';
 
+type GuardParams<
+  TContext extends Record<string, any>,
+  TEventData extends Record<string, any>,
+> = {
+  name: string;
+  handler: (params: {
+    event: BasicEventObject<TEventData>;
+    context: BasicContext<TContext>;
+  }) => boolean;
+};
+
 /**
  *
  * Represents a condition (guard) within a state machine context using XState. Guards in XState are
@@ -24,10 +35,11 @@ import { BasicContext, BasicEventObject } from './types';
  * @typeparam TEventData The type of the event within which the action operates.
  */
 export default class Guard<
-  TContext extends Record<string, any>,
-  TEventData extends Record<string, any>,
+  TContext extends Record<string, any> = Record<string, any>,
+  TEventData extends Record<string, any> = Record<string, any>,
 > {
   private id: string;
+  private params: GuardParams<TContext, TEventData>;
 
   /**
    * Initializes a new instance of the `Guard` class with a specified name and a boolean-returning handler function.
@@ -40,14 +52,21 @@ export default class Guard<
    *    the current state and returns a boolean indicating whether the conditions are met for the action or transition to proceed.
    */
   constructor(
-    private params: {
-      name: string;
-      handler: (params: {
-        event: BasicEventObject<TEventData>;
-        context: BasicContext<TContext>;
-      }) => boolean;
-    },
+    params:
+      | GuardParams<TContext, TEventData>
+      | ((params: {
+          event: BasicEventObject<TEventData>;
+          context: BasicContext<TContext>;
+        }) => boolean),
   ) {
+    if (typeof params === 'function') {
+      this.params = {
+        name: generateShortUuid(),
+        handler: params,
+      };
+    } else {
+      this.params = params;
+    }
     this.id = this.params.name;
   }
 

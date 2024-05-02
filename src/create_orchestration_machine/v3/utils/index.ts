@@ -134,6 +134,15 @@ function toBase62(num: bigint) {
   return result;
 }
 
+/**
+ * Generates a short UUID by first creating a standard UUID, then hashing it using SHA-256.
+ * The hash is then converted to a BigInt for base62 encoding. The result is truncated to the
+ * first 8 characters to provide a short identifier.
+ *
+ * This approach ensures a unique, yet concise identifier that is easier to handle than a full UUID.
+ *
+ * @returns A string representing the shortened UUID, truncated to 8 characters.
+ */
 export function generateShortUuid() {
   const fullUuid = uuidv4();
   const hasher = createHash('sha256');

@@ -56,17 +56,21 @@ export default class Transition<TContext extends Record<string, any>> {
   /**
    * Adds a guard condition to this transition, allowing further control over whether the transition should occur
    * based on dynamic context or event conditions.
-   * 
+   *
    * @note While using this, explicitly mention the Machine context type on the new Transition definition
-   * 
+   *
    * @param guard A GuardedTransition configuration, specifying the condition, associated actions, and any additional metadata.
    * @returns The instance of this Transition class to allow method chaining.
    */
   public guard(guard: GuardedTransitionV3<TContext, Record<string, any>>) {
-    this.guards = [...(this.guards || []), {
-      ...guard,
-      actions: guard.actions || withBasicActions<TContext, Record<string, any>>()
-    }];
+    this.guards = [
+      ...(this.guards || []),
+      {
+        ...guard,
+        actions:
+          guard.actions || withBasicActions<TContext, Record<string, any>>(),
+      },
+    ];
     return this;
   }
 
