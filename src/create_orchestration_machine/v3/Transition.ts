@@ -63,7 +63,10 @@ export default class Transition<TContext extends Record<string, any>> {
    * @returns The instance of this Transition class to allow method chaining.
    */
   public guard(guard: GuardedTransitionV3<TContext, Record<string, any>>) {
-    this.guards = [...(this.guards || []), guard];
+    this.guards = [...(this.guards || []), {
+      ...guard,
+      actions: guard.actions || withBasicActions<TContext, Record<string, any>>()
+    }];
     return this;
   }
 

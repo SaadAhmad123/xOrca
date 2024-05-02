@@ -72,7 +72,7 @@ export type OrchestrationStateConfigV3<TContext extends Record<string, any>> = {
  * Attributes:
  * - `guard`: The condition under which the transition should occur, critical for controlling state flow based on dynamic context or events.
  * - `target`: The identifier of the state to transition to if the guard condition is met, defining the path of the state machine.
- * - `actions`: An optional list of actions to execute when the transition is triggered, enabling dynamic responses.
+ * - `actions`: An optional list of actions to execute when the transition is triggered, enabling dynamic responses. Default is: withBasicActions()
  * - `description`: An optional detailed description of the transition's purpose, aiding in understanding and documentation.
  *
  * @typeparam TContext The context type of the state machine, defining the data available during transitions.
