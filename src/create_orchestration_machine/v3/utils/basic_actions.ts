@@ -10,6 +10,9 @@ import { BasicContext, BasicEventObject } from '../types';
 const updateContext = new Action<Record<string, any>, Record<string, any>>({
   name: 'updateContext',
   handler: assign(({ event, context }) => {
+    if (!event) {
+      return context;
+    }
     const { type, ...restOfEvent } = event;
     return { ...context, ...restOfEvent };
   }),
@@ -39,6 +42,9 @@ const updateLogs = new Action<Record<string, any>, Record<string, any>>({
         __cumulativeExecutionUnits,
         ...contextToLog
       } = context || {};
+      if (!event) {
+        return __machineLogs || [];
+      }
       const { __cloudevent: ce, ...eventLog } = event || {};
       return [
         ...(__machineLogs || []),
@@ -68,6 +74,9 @@ export const updateCheckpoint = new Action<
       const { __orchestrationTime } = context || {};
       const startTime = __orchestrationTime?.[0]?.start || Date.now();
       const checkpointTime = Date.now();
+      if (!event) {
+        return __orchestrationTime || [];
+      }
       return [
         ...(__orchestrationTime || []),
         {
@@ -92,6 +101,9 @@ const updateExecutionUnits = new Action<
   name: 'updateExecutionUnits',
   handler: assign({
     __cumulativeExecutionUnits: ({ event, context }: any) => {
+      if (!event) {
+        return context?.__cumulativeExecutionUnits || [];
+      }
       return [
         ...(context?.__cumulativeExecutionUnits || []),
         {

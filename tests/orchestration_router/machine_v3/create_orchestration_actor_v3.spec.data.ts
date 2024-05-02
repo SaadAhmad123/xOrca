@@ -3,11 +3,7 @@ import Emit from '../../../src/create_orchestration_machine/v3/Emit';
 import * as zod from 'zod';
 import Action from '../../../src/create_orchestration_machine/v3/Action';
 import { assign } from 'xstate';
-import {
-  withBasicActions,
-  Transition,
-  Guard,
-} from '../../../src';
+import { withBasicActions, Transition, Guard } from '../../../src';
 
 type SummaryStateMachineContext = {
   bookId: string;
