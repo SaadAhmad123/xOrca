@@ -1,8 +1,10 @@
 import { OrchestrationTransitionConfig } from '../types';
 import Action from './Action';
 import * as zod from 'zod';
-import { GuardedTransitionV3 } from './types';
-import { withBasicActions } from './basic_actions';
+import { BasicContext, BasicEventObject, GuardedTransitionV3 } from './types';
+import { withBasicActions } from './utils/basic_actions';
+import { ActionFunction } from 'xstate';
+import { GuardPredicate } from 'xstate/dist/declarations/src/guards';
 
 /**
  * Manages state transitions within a state machine, allowing configuration of transition conditions, actions, and targets.
@@ -10,20 +12,16 @@ import { withBasicActions } from './basic_actions';
  * over state changes based on complex conditions.
  *
  * @typeparam TContext Defines the context type for the state machine, describing the state's structure.
- * @typeparam TEventData Defines the structure of the event data relevant to the transition, validated by a Zod schema.
  */
-export default class Transition<
-  TContext extends Record<string, any>,
-  TEventData extends zod.ZodObject<any> = any,
-> {
-  private guards: GuardedTransitionV3<TContext>[] = [];
+export default class Transition<TContext extends Record<string, any>> {
   private params: {
     on: string;
     target: string;
-    schema?: TEventData;
-    actions?: Action<TContext>[];
+    schema?: zod.ZodObject<Record<string, any>>;
+    actions?: Action<TContext, Record<string, any>>[];
     description?: string;
   };
+  private guards?: GuardedTransitionV3<TContext, Record<string, any>>[];
 
   /**
    * Constructs a Transition instance with basic transition parameters.
@@ -39,25 +37,33 @@ export default class Transition<
     on: string,
     config: {
       target: string;
-      schema?: TEventData;
-      actions?: Action<TContext>[];
+      schema?: zod.ZodObject<Record<string, any>>;
+      actions?: Action<TContext, Record<string, any>>[];
       description?: string;
+      guards?: GuardedTransitionV3<TContext, Record<string, any>>[];
     },
   ) {
+    const { guards, ..._config } = config;
     this.params = {
       on,
-      ...config,
-      actions: config.actions || withBasicActions(),
+      ..._config,
+      actions:
+        config.actions || withBasicActions<TContext, Record<string, any>>(),
     };
+    this.guards = guards;
   }
 
   /**
-   * Adds a guarded transition configuration to this transition instance.
-   *
-   * @param guard A GuardedTransition configuration linking guards to actions and target states.
+   * Adds a guard condition to this transition, allowing further control over whether the transition should occur
+   * based on dynamic context or event conditions.
+   * 
+   * @note While using this, explicitly mention the Machine context type on the new Transition definition
+   * 
+   * @param guard A GuardedTransition configuration, specifying the condition, associated actions, and any additional metadata.
+   * @returns The instance of this Transition class to allow method chaining.
    */
-  public guard(guard: GuardedTransitionV3<TContext>) {
-    this.guards.push(guard);
+  public guard(guard: GuardedTransitionV3<TContext, Record<string, any>>) {
+    this.guards = [...(this.guards || []), guard];
     return this;
   }
 
@@ -77,7 +83,7 @@ export default class Transition<
    */
   public get handler(): OrchestrationTransitionConfig[] {
     return [
-      ...this.guards.map((item) => ({
+      ...(this.guards || []).map((item) => ({
         guard: item.guard.ref,
         actions: (item.actions || []).map((action) => action.ref),
         description: item.description,
@@ -107,12 +113,24 @@ export default class Transition<
       {},
       ...[
         ...(this.params.actions || []),
-        ...this.guards.reduce(
+        ...(this.guards || []).reduce(
           (acc, cur) => [...acc, ...(cur?.actions || [])],
           [] as Action<TContext>[],
         ),
       ].map((item) => ({ [item.ref]: item.handler })),
-    );
+    ) as Record<
+      string,
+      ActionFunction<
+        BasicContext<TContext>,
+        BasicEventObject<Record<string, any>>,
+        BasicEventObject<Record<string, any>>,
+        any,
+        any,
+        any,
+        any,
+        any
+      >
+    >;
   }
 
   /**
@@ -123,7 +141,17 @@ export default class Transition<
   public get guardFunctions() {
     return Object.assign(
       {},
-      ...this.guards.map((item) => ({ [item.guard.ref]: item.guard.handler })),
-    );
+      ...(this.guards || []).map((item) => ({
+        [item.guard.ref]: item.guard.handler,
+      })),
+    ) as Record<
+      string,
+      GuardPredicate<
+        BasicContext<TContext>,
+        BasicEventObject<Record<string, any>>,
+        any,
+        any
+      >
+    >;
   }
 }

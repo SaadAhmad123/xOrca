@@ -1,8 +1,9 @@
 import { ActionFunction, EventObject } from 'xstate';
 import { generateShortUuid } from './utils';
+import { BasicContext, BasicEventObject } from './types';
 
 /**
- * 
+ *
  * A generic class for defining actions within an XState state machine context. It encapsulates
  * action logic and associates it with a unique identifier. Actions defined using this class can
  * be used for handling state transitions or performing side effects in response to events in the state machine.
@@ -16,18 +17,23 @@ import { generateShortUuid } from './utils';
  * ```
  *
  * @typeparam TContext The type of the state context within which the action operates.
+ * @typeparam TEventData The type of the event within which the action operates.
  */
-export default class Action<TContext extends Record<string, any>> {
+export default class Action<
+  TContext extends Record<string, any> = Record<string, any>,
+  TEventData extends Record<string, any> = Record<string, any>,
+> {
   /**
    * Clones an existing `Action` instance, creating a new instance with the same parameters but a new unique identifier.
    *
    * @param action The `Action` instance to clone.
    * @returns A new `Action` instance that is a copy of the input but with a unique identifier.
    */
-  static copyFrom<TContext extends Record<string, any>>(
-    action: Action<TContext>,
-  ) {
-    return new Action<TContext>(action.params);
+  static copyFrom<
+    TContext extends Record<string, any> = Record<string, any>,
+    TEventData extends Record<string, any> = Record<string, any>,
+  >(action: Action<TContext, TEventData>) {
+    return new Action<TContext, TEventData>(action.params);
   }
 
   private id: string;
@@ -43,9 +49,9 @@ export default class Action<TContext extends Record<string, any>> {
     private params: {
       name: string;
       handler: ActionFunction<
-        TContext,
-        EventObject & { [key: string]: any },
-        EventObject & { [key: string]: any },
+        BasicContext<TContext>,
+        BasicEventObject<TEventData>,
+        BasicEventObject<TEventData>,
         any,
         any,
         any,

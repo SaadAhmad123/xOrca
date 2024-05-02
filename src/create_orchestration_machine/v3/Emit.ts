@@ -2,9 +2,10 @@ import { OnOrchestrationStateEmit } from '../types';
 import * as zod from 'zod';
 import { MachineSnapshot } from 'xstate';
 import { generateShortUuid } from './utils';
+import { BasicContext, BasicEventObject } from './types';
 
 /**
- * 
+ *
  * `Emit` class facilitates the creation and management of typed events within a state machine.
  * It enables events to carry strongly-typed names and data, validated via Zod schemas, and handled by
  * a custom function. It is ideal for complex state management scenarios where events must adhere
@@ -33,7 +34,7 @@ import { generateShortUuid } from './utils';
 export default class Emit<
   TContext extends Record<string, any>,
   TEmit extends string,
-  TEmitData extends zod.ZodObject<any>,
+  TEmitData extends zod.ZodObject<Record<string, any>>,
 > {
   /**
    * Creates a new `Emit` instance with a new unique identifier while maintaining the same configuration.
@@ -72,11 +73,19 @@ export default class Emit<
       handler: (
         id: string,
         state: string,
-        snapshot: MachineSnapshot<TContext, any, any, any, any, any, any>,
+        snapshot: MachineSnapshot<
+          BasicContext<TContext>,
+          BasicEventObject<Record<string, any>>,
+          BasicEventObject<Record<string, any>>,
+          any,
+          any,
+          any,
+          any
+        >,
       ) => zod.infer<TEmitData>;
     },
   ) {
-    this.params.name = this.params.name || this.params.event
+    this.params.name = this.params.name || this.params.event;
     this.id = this.params.name;
   }
 

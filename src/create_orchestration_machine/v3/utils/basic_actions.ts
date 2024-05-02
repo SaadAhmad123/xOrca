@@ -1,13 +1,13 @@
 import { assign } from 'xstate';
-import Action from './Action';
-import { BasicContext } from './types';
+import Action from '../Action';
+import { BasicContext, BasicEventObject } from '../types';
 
 /**
  * An XState action that assigns event data to the context, excluding the 'type' property of the event.
  * This action is useful in scenarios where the context needs to be updated with new data from an event,
  * but the event's type should not overwrite any existing context properties.
  */
-const updateContext = new Action<Record<string, any>>({
+const updateContext = new Action<Record<string, any>, Record<string, any>>({
   name: 'updateContext',
   handler: assign(({ event, context }) => {
     const { type, ...restOfEvent } = event;
@@ -27,7 +27,7 @@ const updateContext = new Action<Record<string, any>>({
  * The resulting '__machineLogs' array provides a history of events that we recieved and their associated
  * data during the execution of the state machine.
  */
-const updateLogs = new Action<BasicContext & { [key: string]: any }>({
+const updateLogs = new Action<Record<string, any>, Record<string, any>>({
   name: 'updateLogs',
   handler: assign({
     __machineLogs: ({ event, context }) => {
@@ -59,7 +59,8 @@ const updateLogs = new Action<BasicContext & { [key: string]: any }>({
  * and log the checkpoint
  */
 export const updateCheckpoint = new Action<
-  BasicContext & { [key: string]: any }
+  Record<string, any>,
+  Record<string, any>
 >({
   name: 'updateCheckpoint',
   handler: assign({
@@ -84,7 +85,10 @@ export const updateCheckpoint = new Action<
  * For an event, it checks the payload for field `__executionunits`
  * and then appends the execution units of the orchestrations
  */
-const updateExecutionUnits = new Action<BasicContext & { [key: string]: any }>({
+const updateExecutionUnits = new Action<
+  Record<string, any>,
+  Record<string, any>
+>({
   name: 'updateExecutionUnits',
   handler: assign({
     __cumulativeExecutionUnits: ({ event, context }: any) => {
@@ -120,8 +124,9 @@ export const BasicActions = {
  * @returns a list of all the actions
  */
 export function withBasicActions<
-  TContext extends Record<string, any> = BasicContext & { [key: string]: any },
->(...args: Action<TContext>[]): Action<TContext>[] {
+  TContext extends Record<string, any>,
+  TEventData extends Record<string, any>,
+>(...args: Action<TContext, TEventData>[]): Action<TContext, TEventData>[] {
   const aggregate = [
     ...(args || []),
     updateLogs,

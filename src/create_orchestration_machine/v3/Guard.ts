@@ -1,8 +1,9 @@
 import { MachineSnapshot } from 'xstate';
 import { generateShortUuid } from './utils';
+import { BasicContext, BasicEventObject } from './types';
 
 /**
- * 
+ *
  * Represents a condition (guard) within a state machine context using XState. Guards in XState are
  * boolean-returning functions that determine the feasibility of a transition or action based on
  * current state conditions. This `Guard` class allows for defining such conditions with a name and a
@@ -19,10 +20,13 @@ import { generateShortUuid } from './utils';
  * console.log(guard.ref);  // Outputs the unique ID of the guard, incorporating the name 'validateUser'
  * ```
  *
- * @typeparam TContext The type of context the state machine uses, typically a record or an object that
- *                     describes the state context.
+ * @typeparam TContext The type of the state context within which the action operates.
+ * @typeparam TEventData The type of the event within which the action operates.
  */
-export default class Guard<TContext extends Record<string, any>> {
+export default class Guard<
+  TContext extends Record<string, any>,
+  TEventData extends Record<string, any>,
+> {
   private id: string;
 
   /**
@@ -38,9 +42,10 @@ export default class Guard<TContext extends Record<string, any>> {
   constructor(
     private params: {
       name: string;
-      handler: (
-        snapshot: MachineSnapshot<TContext, any, any, any, any, any, any>,
-      ) => boolean;
+      handler: (params: {
+        event: BasicEventObject<TEventData>;
+        context: BasicContext<TContext>;
+      }) => boolean;
     },
   ) {
     this.id = this.params.name;

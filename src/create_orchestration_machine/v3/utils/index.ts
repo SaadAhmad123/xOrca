@@ -1,28 +1,24 @@
 import {
   OrchestrationStateConfig,
   OrchestrationTransitionConfig,
-} from '../types';
+} from '../../types';
 import {
   BasicContext,
   OrchestrationMachineConfigV3,
   OrchestrationStateConfigV3,
-} from './types';
+} from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { createHash } from 'crypto';
 
 export function compileMachine<
-  TContext extends BasicContext,
-  TEmit extends string,
+  TContext extends Record<string, any>,
   TInput extends Record<string, any> = Record<string, any>,
->(config: OrchestrationMachineConfigV3<TContext, TEmit, TInput>) {
+>(config: OrchestrationMachineConfigV3<TContext, TInput>) {
   let actionFunctions: Record<string, any> = {};
   let emitFunctions: Record<string, any> = {};
   let guardFunctions: Record<string, any> = {};
-  const _compileState = <
-    TContext extends Record<string, any>,
-    TState extends string,
-  >(
-    state: OrchestrationStateConfigV3<TContext, TState>,
+  const _compileState = <TContext extends Record<string, any>>(
+    state: OrchestrationStateConfigV3<TContext>,
   ): OrchestrationStateConfig<TContext> => {
     if (state.emit) {
       emitFunctions[state.emit.ref] = state.emit.handler;
@@ -79,9 +75,7 @@ export function compileMachine<
       states: Object.assign(
         {},
         ...Object.entries(state.states || {}).map(([key, value]) => ({
-          [key]: _compileState(
-            value as OrchestrationStateConfigV3<TContext, string>,
-          ),
+          [key]: _compileState(value as OrchestrationStateConfigV3<TContext>),
         })),
       ),
     };
@@ -118,9 +112,7 @@ export function compileMachine<
       states: Object.assign(
         {},
         ...Object.entries(config.states || {}).map(([key, value]) => ({
-          [key]: _compileState(
-            value as OrchestrationStateConfigV3<TContext, string>,
-          ),
+          [key]: _compileState(value as OrchestrationStateConfigV3<TContext>),
         })),
       ),
     },
@@ -130,10 +122,10 @@ export function compileMachine<
   };
 }
 
-
 function toBase62(num: bigint) {
   const base = 62;
-  const digits = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits =
+    '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   let result = '';
   while (num > 0) {
     result = digits.charAt(Number(num % BigInt(base))) + result;
@@ -151,4 +143,3 @@ export function generateShortUuid() {
   const encoded = toBase62(hashNumber);
   return encoded.substring(0, 8);
 }
-

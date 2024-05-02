@@ -52,7 +52,7 @@ import { withDefaultActions } from './create_orchestration_machine/v2/utils';
 import {
   BasicActions,
   withBasicActions,
-} from './create_orchestration_machine/v3/basic_actions';
+} from './create_orchestration_machine/v3/utils/basic_actions';
 import Action from './create_orchestration_machine/v3/Action';
 import Guard from './create_orchestration_machine/v3/Guard';
 import Emit from './create_orchestration_machine/v3/Emit';
@@ -63,6 +63,7 @@ import {
   OrchestrationStateConfigV3,
   GuardedTransitionV3,
   BasicContext,
+  BasicEventObject,
 } from './create_orchestration_machine/v3/types';
 
 export {
@@ -97,6 +98,7 @@ export {
   OrchestrationMachineConfigV3,
   OrchestrationStateConfigV3,
   BasicContext,
+  BasicEventObject,
   GuardedTransitionV3,
   PersistableActorInput,
   OnOrchestrationEvent,
