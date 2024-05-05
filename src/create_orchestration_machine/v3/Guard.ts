@@ -1,4 +1,3 @@
-import { MachineSnapshot } from 'xstate';
 import { generateShortUuid } from './utils';
 import { BasicContext, BasicEventObject } from './types';
 

@@ -47,8 +47,6 @@ export default class Transition<TContext extends Record<string, any>> {
     this.params = {
       on,
       ..._config,
-      actions:
-        config.actions || withBasicActions<TContext, Record<string, any>>(),
     };
     this.guards = guards;
   }
@@ -65,11 +63,7 @@ export default class Transition<TContext extends Record<string, any>> {
   public guard(guard: GuardedTransitionV3<TContext, Record<string, any>>) {
     this.guards = [
       ...(this.guards || []),
-      {
-        ...guard,
-        actions:
-          guard.actions || withBasicActions<TContext, Record<string, any>>(),
-      },
+      guard
     ];
     return this;
   }
