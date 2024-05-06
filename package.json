@@ -27,7 +27,7 @@
     "crypto": "^1.0.1",
     "unified-serverless-storage": "0.1.3",
     "uuid": "9.0.1",
-    "xorca-cloudevent-router": "^0.2.20",
+    "xorca-cloudevent-router": "^0.2.21",
     "xstate": "5.3.1",
     "zod": "3.22.4"
   },
