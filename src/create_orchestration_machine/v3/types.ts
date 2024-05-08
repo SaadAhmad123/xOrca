@@ -32,6 +32,7 @@ export type OrchestrationMachineConfigV3<
   initial?: string;
   type?: Exclude<OrchestrationStateType, 'final'>;
   states: Record<string, OrchestrationStateConfigV3<TContext>>;
+  executionUnits?: number
 };
 
 /**

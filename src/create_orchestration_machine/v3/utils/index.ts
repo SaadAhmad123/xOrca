@@ -104,7 +104,7 @@ export function compileMachine<
           __cumulativeExecutionUnits: [
             {
               event_type: 'init',
-              units: (1).toString(),
+              units: (config.executionUnits || 1).toString(),
             },
           ],
         };

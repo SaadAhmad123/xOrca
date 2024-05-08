@@ -83,6 +83,12 @@ export type OrchestrationMachineConfig<
     OrchestrationMachineAllowedStringKeys,
     OrchestrationStateConfig<TContext, TEmit, TEventTransformer>
   >;
+
+  /**
+   * The execution units which are assigned to this machine. This is 
+   * the execution cost of the logic executed by the orchestration machine
+   */
+  executionUnits?: number
 };
 
 /**
