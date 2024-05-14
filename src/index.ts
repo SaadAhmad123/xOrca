@@ -66,6 +66,9 @@ import {
   BasicEventObject,
 } from './create_orchestration_machine/v3/types';
 import { generateShortUuid } from './create_orchestration_machine/v3/utils';
+import InternalEchoCloudEventHandler from './internal_cloudevent_handlers/echo_handler'
+import internalEchoEventState from './create_orchestration_machine/v3/utils/internal_echo_state'
+
 
 export {
   BasicActions,
@@ -81,6 +84,8 @@ export {
   withPersistableActor,
   createCloudOrchestrationActor,
   generateShortUuid,
+  InternalEchoCloudEventHandler,
+  internalEchoEventState,
   withDefaultActions,
   orchestrateCloudEvents,
   createOrchestrationMachine,
