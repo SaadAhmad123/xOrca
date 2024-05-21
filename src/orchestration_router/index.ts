@@ -18,7 +18,6 @@ export default class OrchectrationRouter extends CloudEventRouter {
    *
    * @param events - An array of CloudEvents to be processed.
    * @param errorOnNotFound - If true, returns an error for events without a corresponding handler.
-   * @param timeoutMs - Timeout duration for each CloudEvent processing. Default is 900000ms = 15min.
    * @returns A Promise resolving to an array of processed CloudEvents.
    */
   async cloudevents(
