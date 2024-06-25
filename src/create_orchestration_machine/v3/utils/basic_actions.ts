@@ -128,7 +128,6 @@ export const BasicActions = {
 /**
  * This function adds the default actions to the action list
  * The default actions are:
- * - BasicActions.updateLogs
  * - BasicActions.updateCheckpoint
  * - BasicActions.updateExecutionUnits
  *
@@ -141,7 +140,6 @@ export function withBasicActions<
 >(...args: Action<TContext, TEventData>[]): Action<TContext, TEventData>[] {
   const aggregate = [
     ...(args || []),
-    updateLogs,
     updateCheckpoint,
     updateExecutionUnits,
   ];
