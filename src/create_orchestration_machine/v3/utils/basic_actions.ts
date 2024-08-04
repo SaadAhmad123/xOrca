@@ -138,11 +138,7 @@ export function withBasicActions<
   TContext extends Record<string, any>,
   TEventData extends Record<string, any>,
 >(...args: Action<TContext, TEventData>[]): Action<TContext, TEventData>[] {
-  const aggregate = [
-    ...(args || []),
-    updateCheckpoint,
-    updateExecutionUnits,
-  ];
+  const aggregate = [...(args || []), updateCheckpoint, updateExecutionUnits];
   return Object.values(
     aggregate.reduce(
       (acc, cur) => {

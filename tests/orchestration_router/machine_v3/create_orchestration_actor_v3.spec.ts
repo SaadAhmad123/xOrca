@@ -9,6 +9,7 @@ import { createOrchestrationRouter } from '../../../src/orchestration_router/cre
 import { summaryMachineV3 } from './create_orchestration_actor_v3.spec.data';
 import * as zod from 'zod';
 import { CloudEvent } from 'cloudevents';
+import { XOrcaCloudEvent } from 'xorca-cloudevent';
 
 describe('V3 test', () => {
   const stateMachineName = 'SummaryStateMachine';
@@ -48,11 +49,10 @@ describe('V3 test', () => {
 
   it('should initiate the router', async () => {
     let response = await router.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `xorca.${stateMachineName}.start`,
         subject: 'processInit',
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           processId,
           context: {
@@ -68,11 +68,10 @@ describe('V3 test', () => {
     expect(response[0].eventToEmit?.data?.bookId).toBe('1223.pdf');
 
     response = await router.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.fetch.books.success`,
         subject: response[0].eventToEmit?.subject || '',
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           bookContent: ['My name is Saad Ahmad', 'I am in Australia'],
         },
@@ -85,11 +84,10 @@ describe('V3 test', () => {
     );
 
     response = await router.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.summary.create.success`,
         subject: response[0].eventToEmit?.subject || '',
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           summary: 'Name is provided',
         },

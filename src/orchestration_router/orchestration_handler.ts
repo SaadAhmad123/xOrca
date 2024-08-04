@@ -1,6 +1,8 @@
 import {
   CloudEventHandler,
   CloudEventHandlerFunctionOutput,
+  getActiveContext,
+  logToSpan,
 } from 'xorca-cloudevent-router';
 import * as zod from 'zod';
 import { AnyActorLogic } from 'xstate';
@@ -10,6 +12,12 @@ import { createCloudOrchestrationActor } from '../utils/create_cloud_orchestrati
 import CloudOrchestrationActor from '../cloud_orchestration_actor';
 import { IOrchestrationRouter } from './types';
 import { OrchestratorTerms } from '../create_orchestration_machine/utils';
+import { XOrcaBaseContract } from 'xorca-contract';
+import {
+  SpanStatusCode,
+  context as TelemetryContext,
+  trace,
+} from '@opentelemetry/api';
 
 /**
  * Creates an event handler for orchestrating events in xOrca.
@@ -20,175 +28,179 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
   name,
   statemachine,
   storageManager,
-  logger,
   onSnapshot,
   locking,
   enableRoutingMetaData,
   raiseError,
 }: IOrchestrationRouter<TLogic>) {
-  return new CloudEventHandler<
-    `evt.${string}`,
-    | 'cmd.{{resource}}'
-    | 'notif.{{resource}}'
-    | `xorca.orchestrator.${string}.error`
-    | `sys.xorca.orchestrator.${string}.error`
-  >({
-    disableRoutingMetadata: !enableRoutingMetaData,
-    logger,
-    name: OrchestratorTerms.source(name),
-    description: `[xOrca orchestration handler] This handler deals with the orchestration of the events for the orchestrations which have already been initialized`,
+  const contract = new XOrcaBaseContract({
     accepts: {
+      /**
+       * The handler listens to the orcehstration events only.
+       * These event types are prefixed by `evt.` prefix.
+       */
       type: `evt.{{resource}}`,
-      description: [
-        'The handler listens to the orcehstration events only. ',
-        'These event types are prefixed by `evt.` prefix.',
-      ].join(''),
-      zodSchema: zod.object({}).describe(''),
+      schema: zod.object({}),
     },
-    emits: [
-      {
-        type: `cmd.{{resource}}`,
-        description: [
-          'The orchestration router should only be able ',
-          'emit event with `cmd.` prefix.',
-        ].join(''),
-        zodSchema: zod.object({}),
-      },
-      {
-        type: `notif.{{resource}}`,
-        description: [
-          'The orchestration router should be able ',
-          'emit notification events with `notif.` prefix.',
-        ].join(''),
-        zodSchema: zod.object({}),
-      },
-      {
-        type: OrchestratorTerms.error(name),
-        description: [
-          'An error that occurs during the process ',
-          'of the orchestration. It is mostly due to either being ',
-          'unable to access a store via storage manager, a state not already ',
-          'exists for the given state machine name, version and the given ',
-          'process id or there is a error in the logic of the state machine ',
-          'provided.',
-        ].join(''),
-        zodSchema: OrchestratorTerms.errorSchema(),
-      },
-    ],
-    handler: async ({ type, data, params, logger, spanContext, event }) => {
-      let persistablActor:
-        | PersistableActor<TLogic, CloudOrchestrationActor<TLogic>>
-        | undefined = undefined;
-      const startTime = performance.now();
-      const responses: CloudEventHandlerFunctionOutput<
-        | 'cmd.{{resource}}'
-        | 'notif.{{resource}}'
-        | `xorca.orchestrator.${string}.error`
-      >[] = [];
-      let subject = 'unknown-subject';
-      try {
-        subject = event.subject || subject;
-        const logic = getStateMachine(
-          subject,
-          [name],
-          statemachine,
-          raiseError,
-        );
-        if (!logic) return [];
-        await logger({
-          type: 'START',
-          source: OrchestratorTerms.source(name),
-          spanContext: spanContext,
-          startTime,
-          input: {
-            type,
-            data,
-          },
-          params,
-        });
-        persistablActor = new PersistableActor({
-          id: subject,
-          storageManager,
-          locking,
-          actorCreator: (id, snapshot) => {
-            if (!snapshot) {
-              throw new Error(`The subject=${id} not already initiated.`);
-            }
-            return createCloudOrchestrationActor(logic.orchestrationMachine, {
-              name,
-              version: logic.version,
-              id,
-              snapshot,
-            });
-          },
-        });
-        await persistablActor.init();
-        await persistablActor.actor.start();
-        await persistablActor.actor.cloudevent(event);
-        for (const item of persistablActor.actor.eventsToEmit) {
-          responses.push({
-            type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
-            data: item.data || {},
-            subject: item.subject,
-            source: OrchestratorTerms.source(name),
-          });
-        }
-        try {
-          const snapshot = persistablActor.actor.getSnapshot();
-          onSnapshot?.(subject, snapshot);
-        } catch (e) {
-          console.error(e);
-        }
-        await persistablActor.save();
-        await persistablActor.close();
-      } catch (e) {
-        await persistablActor?.close();
-        responses.push({
-          type: OrchestratorTerms.error(
-            name,
-          ) as `xorca.orchestrator.${string}.error`,
-          data: {
-            eventData: data,
-            errorMessage: (e as Error)?.message,
-            errorName: (e as Error)?.name,
-            errorStack: (e as Error)?.stack,
-          },
-          subject,
-          source: OrchestratorTerms.source(name),
-        });
-        await logger({
-          type: 'ERROR',
-          source: OrchestratorTerms.source(name),
-          spanContext: spanContext,
-          error: e as Error,
-          params,
-          input: {
-            type,
-            data,
-          },
-        });
-      }
-      await Promise.all(
-        responses.map(
-          async (item) =>
-            await logger({
-              type: 'LOG',
-              source: OrchestratorTerms.source(name),
-              spanContext: spanContext,
-              output: item,
-            }),
-        ),
+    emits: {
+      /**
+       * The orchestration router should only be able
+       * emit event with `cmd.` prefix.
+       */
+      [`cmd.{{resource}}`]: zod.object({}),
+
+      /**
+       * The orchestration router should be able
+       * emit notification events with `notif.` prefix.
+       */
+      [`notif.{{resource}}`]: zod.object({}),
+
+      /**
+       * An error that occurs during the initialization
+       * of the orchestration. It is mostly due to either being
+       * unable to create a store via storage manager, a state already
+       * exists for the given state machine name, version and the given
+       * process id or there is a error in the logic of the state machine
+       * provided.
+       */
+      [OrchestratorTerms.error(name)]: OrchestratorTerms.errorSchema(),
+    },
+  });
+
+  return new CloudEventHandler({
+    name: OrchestratorTerms.source(name),
+    disableRoutingMetadata: !enableRoutingMetaData,
+    description: `[xOrca orchestration handler] This handler deals with the orchestration of the events for the orchestrations which have already been initialized`,
+    contract,
+    handler: async ({ type, data, openTelemetry, event }) => {
+      const activeTelemetryContext = getActiveContext(
+        openTelemetry.context.traceparent,
       );
-      const endTime = performance.now();
-      await logger({
-        type: 'END',
-        source: OrchestratorTerms.source(name),
-        spanContext: spanContext,
-        startTime,
-        endTime,
-        duration: endTime - startTime,
-      });
-      return responses;
+      const activeTelemetrySpan = openTelemetry.tracer.startSpan(
+        `Orchestration.process<${OrchestratorTerms.source(name)}>.event<${type}>`,
+        undefined,
+        activeTelemetryContext,
+      );
+
+      const result = await TelemetryContext.with(
+        trace.setSpan(activeTelemetryContext, activeTelemetrySpan),
+        async () => {
+          let persistablActor:
+            | PersistableActor<TLogic, CloudOrchestrationActor<TLogic>>
+            | undefined = undefined;
+          const responses: CloudEventHandlerFunctionOutput<typeof contract>[] =
+            [];
+          let subject = 'unknown-subject';
+          try {
+            subject = event.subject || subject;
+            const logic = getStateMachine(
+              subject,
+              [name],
+              statemachine,
+              raiseError,
+            );
+            if (!logic) return [];
+            logToSpan(activeTelemetrySpan, {
+              level: 'INFO',
+              message: `Process orchestration - Started - ${OrchestratorTerms.source(name)} - Event - ${type}`,
+            });
+            persistablActor = new PersistableActor({
+              id: subject,
+              storageManager,
+              locking,
+              actorCreator: (id, snapshot) => {
+                if (!snapshot) {
+                  throw new Error(`The subject=${id} not already initiated.`);
+                }
+                return createCloudOrchestrationActor(
+                  logic.orchestrationMachine,
+                  {
+                    name,
+                    version: logic.version,
+                    id,
+                    snapshot,
+                  },
+                );
+              },
+            });
+            await persistablActor.init();
+            await persistablActor.actor.start();
+            activeTelemetrySpan.setAttribute(
+              'xorca.orchestration.start_state',
+              JSON.stringify(
+                (persistablActor?.actor?.getSnapshot() as any)?.value || {},
+              ),
+            );
+            await persistablActor.actor.cloudevent(event.toCloudEvent());
+            for (const item of persistablActor.actor.eventsToEmit) {
+              responses.push({
+                type: item.type as 'cmd.{{resource}}' | 'notif.{{resource}}',
+                data: item.data || {},
+                subject: item.subject,
+                source: OrchestratorTerms.source(name),
+              });
+            }
+            try {
+              const snapshot = persistablActor.actor.getSnapshot();
+              logToSpan(activeTelemetrySpan, {
+                level: 'INFO',
+                message: `Process orchestrator - Snapshot - ${OrchestratorTerms.source(name)}\n\nStatus: ${(snapshot as any)?.status}\n\nCurrent state: ${JSON.stringify((snapshot as any)?.value || {})}`,
+              });
+              onSnapshot?.(subject, snapshot);
+            } catch (e) {
+              logToSpan(activeTelemetrySpan, {
+                level: 'ERROR',
+                message: `Process orchestrator - Snapshot - ${OrchestratorTerms.source(name)}\n\n${(e as Error).message}\n\nError stack - ${(e as Error).stack}`,
+              });
+            }
+            await persistablActor.save();
+            activeTelemetrySpan.setAttribute(
+              'xorca.orchestration.end_state',
+              JSON.stringify(
+                (persistablActor?.actor?.getSnapshot() as any)?.value || {},
+              ),
+            );
+            activeTelemetrySpan.setAttribute(
+              'xorca.orchestration.status',
+              JSON.stringify(
+                (persistablActor?.actor?.getSnapshot() as any)?.status || {},
+              ),
+            );
+            await persistablActor.close();
+          } catch (e) {
+            await persistablActor?.close();
+            responses.push({
+              type: OrchestratorTerms.error(
+                name,
+              ) as `xorca.orchestrator.${string}.error`,
+              data: {
+                eventData: data,
+                errorMessage: (e as Error)?.message,
+                errorName: (e as Error)?.name,
+                errorStack: (e as Error)?.stack,
+              },
+              subject,
+              source: OrchestratorTerms.source(name),
+            });
+            activeTelemetrySpan.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: (e as Error).message,
+            });
+            logToSpan(activeTelemetrySpan, {
+              level: 'CRITICAL',
+              message: `Process Orchestration - Failed - ${OrchestratorTerms.source(name)}\n\n${(e as Error).message}\n\nError stack - ${(e as Error).stack}`,
+            });
+          }
+          logToSpan(activeTelemetrySpan, {
+            level: 'INFO',
+            message: `Process orchestration - Step Completed - ${OrchestratorTerms.source(name)}`,
+          });
+          return responses;
+        },
+      );
+
+      activeTelemetrySpan.end();
+      return result;
     },
   });
 }

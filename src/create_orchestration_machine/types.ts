@@ -85,10 +85,10 @@ export type OrchestrationMachineConfig<
   >;
 
   /**
-   * The execution units which are assigned to this machine. This is 
+   * The execution units which are assigned to this machine. This is
    * the execution cost of the logic executed by the orchestration machine
    */
-  executionUnits?: number
+  executionUnits?: number;
 };
 
 /**

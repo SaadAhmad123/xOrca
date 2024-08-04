@@ -7,6 +7,7 @@ import { CloudEvent } from 'cloudevents';
 import { matchTemplates } from 'xorca-cloudevent-router/dist/utils';
 import { OrchestrationRouterResponse } from './types';
 import { CloudEventRouterHandlerOptions } from 'xorca-cloudevent-router/dist/CloudEventRouter/types';
+import { XOrcaCloudEvent } from 'xorca-cloudevent';
 
 export default class OrchectrationRouter extends CloudEventRouter {
   constructor(params: ICloudEventRouter) {
@@ -21,7 +22,7 @@ export default class OrchectrationRouter extends CloudEventRouter {
    * @returns A Promise resolving to an array of processed CloudEvents.
    */
   async cloudevents(
-    events: CloudEvent<Record<string, any>>[],
+    events: XOrcaCloudEvent[],
     options?: CloudEventRouterHandlerOptions,
   ): Promise<OrchestrationRouterResponse[]> {
     const subjectToEvents = events.reduce(
@@ -33,7 +34,7 @@ export default class OrchectrationRouter extends CloudEventRouter {
         acc[subject].push(cur);
         return acc;
       },
-      {} as Record<string, CloudEvent<Record<string, any>>[]>,
+      {} as Record<string, XOrcaCloudEvent[]>,
     );
     const handlerKeys = Object.keys(this.handlerMap || {});
     return (
@@ -54,7 +55,7 @@ export default class OrchectrationRouter extends CloudEventRouter {
                 ...(
                   await this.handlerMap[
                     matchTemplateResp.matchedTemplate
-                  ].safeCloudevent(item)
+                  ].cloudevent(item)
                 ).map((resp) => ({
                   event: item,
                   success: resp.success,

@@ -1,10 +1,10 @@
-import { Logger } from 'xorca-cloudevent-router';
 import { AnyActorLogic, SnapshotFrom } from 'xstate';
 import * as zod from 'zod';
 import { CloudEvent } from 'cloudevents';
 import { ILockableStorageManager } from 'unified-serverless-storage';
 import { Version } from '../cloud_orchestration_actor/types';
 import { OrchestrationMachine } from '../create_orchestration_machine/types';
+import { XOrcaCloudEvent } from 'xorca-cloudevent';
 
 /**
  * Defines a version-specific orchestration state machine configuration.
@@ -79,11 +79,6 @@ export interface IOrchestrationRouter<TLogic extends AnyActorLogic>
   description?: string;
 
   /**
-   * Optional logger function for accessing router logs, facilitating debugging and monitoring.
-   */
-  logger?: Logger;
-
-  /**
    * Schema for validating the initial context data, utilizing Zod for schema definition.
    */
   initialContextZodSchema: zod.ZodObject<any>;
@@ -120,7 +115,7 @@ export type OrchestrationRouterResponse = {
   /**
    * The original event
    */
-  event: CloudEvent<Record<string, any>>;
+  event: XOrcaCloudEvent;
   /**
    * Flag informing on successful execution
    */
@@ -140,5 +135,5 @@ export type OrchestrationRouterResponse = {
   /**
    * The event to emit after processing
    */
-  eventToEmit?: CloudEvent<Record<string, any>>;
+  eventToEmit?: XOrcaCloudEvent;
 };

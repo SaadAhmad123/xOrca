@@ -6,11 +6,27 @@ import {
 } from 'unified-serverless-storage';
 import { Version, createOrchestrationRouter } from '../../src/index';
 import { summaryStateMachine } from './orchestration_router.spec.data';
-import { CloudEvent } from 'cloudevents';
 import { v4 as uuidv4 } from 'uuid';
 import * as zod from 'zod';
-import { ILogger } from 'xorca-cloudevent-router';
 import { makeSubject, parseSubject } from '../../src/utils';
+import { XOrcaCloudEvent } from 'xorca-cloudevent';
+import { Resource } from '@opentelemetry/resources';
+import {
+  SEMRESATTRS_SERVICE_NAME,
+  SEMRESATTRS_SERVICE_VERSION,
+} from '@opentelemetry/semantic-conventions';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+const sdk = new NodeSDK({
+  resource: new Resource({
+    [SEMRESATTRS_SERVICE_NAME]: 'xorca.orchestrator.test',
+    [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
+  }),
+  traceExporter: new ConsoleSpanExporter(),
+});
 
 describe('The orchestration router init handler specs', () => {
   const rootDir = path.join(__dirname, '.statemachine.orchestration');
@@ -37,11 +53,10 @@ describe('The orchestration router init handler specs', () => {
   };
 
   const createInitEvent = (processId: string) =>
-    new CloudEvent<Record<string, any>>({
+    new XOrcaCloudEvent({
       type: `xorca.${orchestratorName}.start`,
       subject: 'processInit',
       source: '/test',
-      datacontenttype: 'application/cloudevents+json; charset=UTF-8',
       data: {
         processId,
         context: {
@@ -53,8 +68,13 @@ describe('The orchestration router init handler specs', () => {
 
   const { router: orchestrationRouter } = createOrchestrationRouter(params);
 
+  beforeAll(() => {
+    sdk.start();
+  });
+
   afterAll(() => {
     try {
+      sdk.shutdown();
       fs.rmdirSync(rootDir, { recursive: true });
     } catch (e) {
       console.error(e);
@@ -69,29 +89,29 @@ describe('The orchestration router init handler specs', () => {
     expect(responses.length).toBe(1);
     expect(responses[0].eventToEmit?.type).toBe('cmd.book.fetch');
     const subject = responses[0]?.eventToEmit?.subject || '';
-
+    const ogTp = responses[0]?.eventToEmit?.traceparent;
     responses = await orchestrationRouter.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.books.fetch.success`,
         subject,
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           bookData: ['saad', 'ahmad'],
         },
+        traceparent: ogTp,
       }),
     ]);
     expect(responses.length).toBe(0);
 
     responses = await orchestrationRouter.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.book.fetch.success`,
         subject,
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           bookData: ['saad', 'ahmad'],
         },
+        traceparent: ogTp,
       }),
     ]);
     expect(responses.length).toBe(1);
@@ -101,29 +121,29 @@ describe('The orchestration router init handler specs', () => {
     );
 
     responses = await orchestrationRouter.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.gpt.summary.success`,
         subject,
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           summary: 'This is my name',
         },
+        traceparent: responses[0].event.traceparent,
       }),
     ]);
     expect(responses.length).toBe(2);
     expect(responses[0].eventToEmit?.type).toBe('cmd.regulations.compliant');
     expect(responses[1].eventToEmit?.type).toBe('cmd.regulations.grounded');
-
+    const groudedTraceParent = responses[1].event.traceparent;
     responses = await orchestrationRouter.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.regulations.compliant.success`,
         subject,
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           compliant: true,
         },
+        traceparent: responses[0].event.traceparent,
       }),
     ]);
     // This is because the machine is waiting for the other parallel state to end as well
@@ -131,7 +151,7 @@ describe('The orchestration router init handler specs', () => {
 
     const parsed = parseSubject(subject);
     responses = await orchestrationRouter.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.regulations.grounded.success`,
         subject: makeSubject(
           parsed.processId,
@@ -139,24 +159,24 @@ describe('The orchestration router init handler specs', () => {
           parsed.version,
         ),
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           grounded: true,
         },
+        traceparent: groudedTraceParent,
       }),
     ]);
     // Invalid name in subject
     expect(responses.length).toBe(0);
 
     responses = await orchestrationRouter.cloudevents([
-      new CloudEvent<Record<string, any>>({
+      new XOrcaCloudEvent({
         type: `evt.regulations.grounded.success`,
         subject,
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           grounded: true,
         },
+        traceparent: groudedTraceParent,
       }),
     ]);
     expect(responses.length).toBe(1);

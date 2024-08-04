@@ -7,10 +7,22 @@ import {
 import { Version } from '../../src/index';
 import { createOrchestrationInitHandler } from '../../src/orchestration_router/init_handler';
 import { summaryStateMachine } from './orchestration_router.spec.data';
-import { CloudEvent } from 'cloudevents';
 import { v4 as uuidv4 } from 'uuid';
 import { makeSubject } from '../../src/utils';
 import * as zod from 'zod';
+import { cleanString } from 'xorca-cloudevent-router/dist/utils';
+import { XOrcaCloudEvent } from 'xorca-cloudevent';
+import { Resource } from '@opentelemetry/resources';
+import { SEMRESATTRS_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
+
+const sdk = new NodeSDK({
+  resource: new Resource({
+    [SEMRESATTRS_SERVICE_NAME]: 'orchestrator_init',
+  }),
+  traceExporter: new ConsoleSpanExporter(),
+});
 
 describe('The orchestration router init handler specs', () => {
   const rootDir = path.join(__dirname, '.statemachine.orchestration');
@@ -34,8 +46,13 @@ describe('The orchestration router init handler specs', () => {
     }),
   });
 
+  beforeAll(() => {
+    sdk.start();
+  });
+
   afterAll(() => {
     try {
+      sdk.shutdown();
       fs.rmdirSync(rootDir, { recursive: true });
     } catch (e) {
       console.error(e);
@@ -44,12 +61,11 @@ describe('The orchestration router init handler specs', () => {
 
   it('should initiate a orchestration machine and generate the init events', async () => {
     const processId = uuidv4();
-    const responses = await orchestrationInitHandler.safeCloudevent(
-      new CloudEvent<Record<string, any>>({
+    const responses = await orchestrationInitHandler.cloudevent(
+      new XOrcaCloudEvent({
         type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           processId,
           context: {
@@ -69,18 +85,17 @@ describe('The orchestration router init handler specs', () => {
       `xorca.orchestrator.${orchestratorName}`,
     );
     expect(resp?.eventToEmit?.datacontenttype).toBe(
-      'application/cloudevents+json; charset=UTF-8',
+      'application/cloudevents+json; charset=UTF-8; profile=xorca',
     );
   });
 
   it('should fail on duplicate process ids as that means the first process has already started', async () => {
     const processId = uuidv4();
-    await orchestrationInitHandler.safeCloudevent(
-      new CloudEvent<Record<string, any>>({
+    await orchestrationInitHandler.cloudevent(
+      new XOrcaCloudEvent({
         type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           processId,
           context: {
@@ -91,12 +106,11 @@ describe('The orchestration router init handler specs', () => {
       }),
     );
 
-    const responses = await orchestrationInitHandler.safeCloudevent(
-      new CloudEvent<Record<string, any>>({
+    const responses = await orchestrationInitHandler.cloudevent(
+      new XOrcaCloudEvent({
         type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           processId,
           context: {
@@ -119,18 +133,17 @@ describe('The orchestration router init handler specs', () => {
       `xorca.orchestrator.${orchestratorName}`,
     );
     expect(resp?.eventToEmit?.datacontenttype).toBe(
-      'application/cloudevents+json; charset=UTF-8',
+      'application/cloudevents+json; charset=UTF-8; profile=xorca',
     );
   });
 
   it('should raise a system error on back context shape', async () => {
     const processId = uuidv4();
-    const responses = await orchestrationInitHandler.safeCloudevent(
-      new CloudEvent<Record<string, any>>({
+    const responses = await orchestrationInitHandler.cloudevent(
+      new XOrcaCloudEvent({
         type: `xorca.${orchestratorName}.start`,
         subject: 'processInit',
         source: '/test',
-        datacontenttype: 'application/cloudevents+json; charset=UTF-8',
         data: {
           processId,
           context: {
@@ -144,11 +157,15 @@ describe('The orchestration router init handler specs', () => {
     expect(resp.success).toBe(false);
     expect(resp?.eventToEmit?.type).toBe('sys.xorca.summary.start.error');
     expect(resp?.eventToEmit?.data?.errorMessage).toBe(
-      '[CloudEventHandler][cloudevent] Invalid handler input data. The response data does not match type=xorca.summary.start expected data shape',
+      cleanString(`
+        [CloudEventHandler][cloudevent] Invalid handler input data.
+        The response data does not match type=xorca.summary.start
+        expected data shape  
+      `),
     );
     expect(resp?.eventToEmit?.source).toBe(`xorca.${orchestratorName}.start`);
     expect(resp?.eventToEmit?.datacontenttype).toBe(
-      'application/cloudevents+json; charset=UTF-8',
+      'application/cloudevents+json; charset=UTF-8; profile=xorca',
     );
   });
 });

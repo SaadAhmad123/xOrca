@@ -11,7 +11,6 @@ import {
 } from '../types';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import * as zod from 'zod';
-import { TraceParent } from 'xorca-cloudevent-router';
 
 const isFunction = (variable: any) => typeof variable === 'function';
 const isBoolean = (variable: any) => typeof variable === 'boolean';
@@ -193,7 +192,6 @@ export function eventSchemaToZod({
       ),
       traceparent: zod
         .string()
-        .regex(TraceParent.validationRegex)
         .optional()
         .describe(
           [
