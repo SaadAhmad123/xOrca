@@ -80,7 +80,12 @@ export function createOrchestrationInitHandler<TLogic extends AnyActorLogic>({
       );
       const activeTelemetrySpan = openTelemetry.tracer.startSpan(
         `Orchestration.init<${OrchestratorTerms.source(name)}>.event<${type}>`,
-        undefined,
+        {
+          attributes: {
+            'openinference.span.kind': 'CHAIN',
+            'xorca.span.kind': 'ORCHESTRATOR',
+          },
+        },
         activeTelemetryContext,
       );
 

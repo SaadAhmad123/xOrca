@@ -3882,10 +3882,10 @@ xmlbuilder@~11.0.0:
   resolved "https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-11.0.1.tgz#be9bae1c8a046e76b31127726347d0ad7002beb3"
   integrity sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==
 
-xorca-cloudevent-router@0.3.12:
-  version "0.3.12"
-  resolved "https://registry.yarnpkg.com/xorca-cloudevent-router/-/xorca-cloudevent-router-0.3.12.tgz#8d7a7e37410330bfeed5557572815b85f1346701"
-  integrity sha512-B4r9yRL9JIbAo1YkRzDPlsGLj/7nQTbaD1gPen6sGDifWISz4MFPzZbpNdnP8tGFF5m5aiy7ozZnVj1XvSMV5Q==
+xorca-cloudevent-router@0.3.13:
+  version "0.3.13"
+  resolved "https://registry.yarnpkg.com/xorca-cloudevent-router/-/xorca-cloudevent-router-0.3.13.tgz#2e3fd3d22b1fe5f6bcd085b8379b2afdd35f7f1b"
+  integrity sha512-fEmjJwMbA7HC2GOVOzlTfIRXEIme3eGK6Q1+JF4qsnuFPYSIJYXti8fkJiCsoLS7nekSLVB8GfbaRKWUx1H2xA==
   dependencies:
     "@opentelemetry/api" "^1.9.0"
     "@opentelemetry/api-metrics" "^0.33.0"
