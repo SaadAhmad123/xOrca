@@ -173,6 +173,9 @@ export function createOrchestrationSystemErrorHandler<
                 (persistablActor?.actor?.getSnapshot() as any)?.status || {},
               ),
             );
+            activeTelemetrySpan.setStatus({
+              code: SpanStatusCode.OK,
+            });
             await persistablActor.close();
           } catch (e) {
             await persistablActor?.close();

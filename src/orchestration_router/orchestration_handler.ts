@@ -171,6 +171,9 @@ export function createOrchestrationHandler<TLogic extends AnyActorLogic>({
                 (persistablActor?.actor?.getSnapshot() as any)?.status || {},
               ),
             );
+            activeTelemetrySpan.setStatus({
+              code: SpanStatusCode.OK,
+            });
             await persistablActor.close();
           } catch (e) {
             await persistablActor?.close();
