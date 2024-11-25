@@ -1,3 +1,5 @@
+> This library is deprecated in favor of Arvo suite. See [arvo-xstate](https://github.com/SaadAhmad123/arvo-xstate) for more information. This is a more enterprise ready and flexible implementation of the exact same idea.
+
 > For a comprehensive understanding/ documentation of this project, kindly visit the [Github repository](https://github.com/SaadAhmad123/xOrca). You can also delve into the specifics by accessing the [project's documentation](https://saadahmad123.github.io/xOrca/), where you'll find detailed Typedocs.
 
 > Note: This is called **xOrca** which is a derived from word **xOrchestrator** because this library build on top of [xstate@5.\*](https://stately.ai/docs/quick-start)
